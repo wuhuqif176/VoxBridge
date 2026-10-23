@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VizPage 可视化页 · 设计草图 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f1 { background: #007AFF; }
+.chip.f5 { background: #FF2D55; }
+.chip.f8 { background: #00C7BE; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.stage { display: flex; gap: 42px; justify-content: center; align-items: flex-start; padding: 34px 24px; flex-wrap: wrap; }
+.phone { width: 360px; height: 780px; border-radius: 36px; border: 10px solid #10141a; background: #0A0A0E; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 30px 80px rgba(15,25,45,.45), inset 0 0 0 2px #2a313c; }
+.statusbar { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: #E6E6E6; font-size: 12px; font-weight: 600; }
+.statusbar .sic { display: flex; align-items: center; gap: 5px; }
+.sig { display: flex; align-items: flex-end; gap: 1.5px; }
+.sig i { width: 3px; background: #E6E6E6; border-radius: 1px; display: block; }
+.bat { width: 20px; height: 10px; border: 1.4px solid #E6E6E6; border-radius: 3px; position: relative; opacity: .9; }
+.bat::after { content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 60%; background: #E6E6E6; border-radius: 1px; }
+.vtopbar { display: flex; align-items: center; padding: 6px 12px 0 4px; height: 52px; }
+.back { font-size: 26px; color: #E6E6E6; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.pill-mute { font-size: 11px; font-weight: 600; color: #8A8A95; height: 26px; padding: 0 12px; border-radius: 13px; background: #1C1C22; display: flex; align-items: center; margin-left: auto; }
+.pill-live { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 14px 0 10px; border-radius: 13px; background: rgba(46,52,199,.35); margin-left: 8px; }
+.pill-live .dot { width: 8px; height: 8px; border-radius: 4px; background: #FF6A6A; animation: pulse 1.4s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,106,106,.6); } 70% { box-shadow: 0 0 0 7px rgba(255,106,106,0); } 100% { box-shadow: 0 0 0 0 rgba(255,106,106,0); } }
+.pill-live b { font-size: 11px; font-weight: 800; color: #FF6A6A; letter-spacing: .5px; }
+.vzhint { margin: 20px 20px 0; height: 580px; border: 1.5px dashed rgba(255,255,255,.13); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; color: #8A8A95; font-size: 12px; line-height: 1.8; }
+.vzhint .vt { font-size: 13.5px; font-weight: 700; color: #E6E6E6; letter-spacing: .5px; }
+.togglebar { position: absolute; left: 20px; right: 20px; bottom: 26px; height: 48px; border-radius: 24px; background: #1C1C22; padding: 4px; display: flex; }
+.vpill { flex: 1; height: 40px; border-radius: 20px; color: #8A8A95; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.vpill.on { background: #007AFF; color: #fff; font-weight: 600; }
+.hs { position: absolute; width: 22px; height: 22px; border-radius: 11px; background: #FF2D55; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255,45,85,.25), 0 2px 6px rgba(0,0,0,.3); z-index: 60; pointer-events: none; }
+.annos { max-width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.anno { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 17px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.anno .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.anno .no { width: 24px; height: 24px; border-radius: 12px; background: #FF2D55; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.anno h4 { font-size: 14px; }
+.anno p { font-size: 12.5px; color: #4a5261; line-height: 1.85; margin-top: 8px; }
+.anno code { background: #eef2f7; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; color: #0a5ab8; }
+.annos .foot { font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">VizPage 可视化页</span>
+  <span class="sub">Live cover 内二级 bindContentCover · 电平表视图容器与分段条</span>
+  <span class="spacer"></span>
+  <span class="chip f1">F1</span>
+  <span class="chip f5">F5</span>
+  <span class="chip f8">F8</span>
+  <span class="chip keep">保持</span>
+</header>
+<div class="stage">
+  <div class="phone">
+    <div class="statusbar">
+      <span>12:30</span>
+      <span class="sic">
+        <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+        <span class="bat"></span>
+      </span>
+    </div>
+    <div class="vtopbar">
+      <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+      <div class="pill-mute">静音</div>
+      <div class="pill-live"><span class="dot"></span><b>LIVE</b></div>
+    </div>
+    <div class="vzhint">
+      <div class="vt">电平表视图容器</div>
+      <div>PRE / POST 双行水平表 · 数值读数 · 削波 LED<br>细节标注与走查项见 meter.html</div>
+    </div>
+    <div class="togglebar">
+      <div class="vpill">电平图</div>
+      <div class="vpill">波形图</div>
+      <div class="vpill on">电平表</div>
+      <div class="vpill">涟漪</div>
+    </div>
+    <div class="hs" style="left: 22px; top: 58px;">1</div>
+    <div class="hs" style="left: 232px; top: 62px;">2</div>
+    <div class="hs" style="left: 170px; top: 102px;">3</div>
+    <div class="hs" style="left: 170px; top: 160px;">5</div>
+    <div class="hs" style="left: 196px; top: 712px;">4</div>
+  </div>
+
+  <aside class="annos">
+    <div class="anno">
+      <div class="top"><span class="no">1</span><h4>返回 = onExit()</h4><span class="chip f1">F1</span></div>
+      <p>由独立 @Entry 页改为 LiveView 内的二级 <code>bindContentCover</code>（模态叠模态）。返回按钮 <code>router.back()</code> → <code>onExit()</code> 收起二级 cover，Live 内容无重载。<strong>风险与退化</strong>：模态叠模态未实测，若不可用则经新增 AppStorage key <code>vizCoverOpen</code> 提升为 Connect 上的二级 cover（Live 内按钮写 key）。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">2</span><h4>顶部指示</h4><span class="chip keep">保持</span></div>
+      <p>LIVE 脉冲点（danger #FF6A6A + <code>viz_live_bg</code> 半透明底）/ 静音切换 / 等待音频态。逻辑与样式保持现状。F1 删除手写 appearOp 600ms 淡入进场（cover 转场自带进场动画）。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">3</span><h4>DisplaySync 帧同步渲染</h4><span class="chip f5">F5</span></div>
+      <p>渲染驱动 <code>setInterval 33ms</code> → <code>displaySync</code>（<code>@kit.ArkGraphics2D</code>）：<code>setExpectedFrameRateRange({ expected: 60, min: 30, max: 120 })</code> + <code>on('frame')</code> + <code>start()</code>；<code>aboutToDisappear</code> <code>stop()</code> 成对释放。<code>onTick</code> 内 vizPageActive 跳帧互斥、tickCount 节流保留；真机压力大按预案 <code>tickCount % 2</code> 降回 ~30fps。电平表视图并入同一 Canvas 与 displaySync 管线（不新建渲染节点），VizRenderer 增加绘制模式分发入口（电平表分支），既有绘制逻辑不动。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">4</span><h4>视图切换 · 分段条</h4><span class="chip f1">F1</span><span class="chip f8">F8 改名</span></div>
+      <p><strong>按审核意见调整</strong>：四个视图选项为<strong>单一圆角水平分段条</strong>（整条 <code>viz_page_pill_bg #1C1C22</code> 底、整体圆角、选中段 accent 内嵌高亮）。<strong>F8</strong>：第四项「音量」→「电平表」（<code>VIZ_PILL_NAMES</code>），本草图展示的即电平表视图。切换逻辑保持，不新增 key（电平图 = <code>deco</code> 0 + <code>showBars</code> · 波形图 = <code>deco</code> 0 + <code>showWave</code> · 电平表 = <code>deco</code> 1 · 涟漪 = <code>deco</code> 2）。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">5</span><h4>电平表视图</h4><span class="chip f8">F8 新增</span><span class="chip next">LUFS 后续</span></div>
+      <p>PRE（降噪前）/ POST（处理后）双行水平表 + 数值读数 + 削波 LED 闩锁 +「重置」，LUFS 灰预留。数据由 AudioVizManager 既有 pre/post 缓冲拉取，<code>feedPost</code> 挂点随 F6 管线重排移至末级之后。<strong>本草图仅示容器与分段条</strong>，PRE/POST 表样式、刻度、峰值保持线、True Peak 竖标等细节标注与走查项统一见 <code>meter.html</code>。</p>
+    </div>
+    <div class="foot">
+      深色画布 <code>viz_page_bg #0A0A0E</code> + expandSafeArea 全屏沉浸保持现状。电平表视图的读数行、PRE/POST 数值卡等计量细节见 <code>meter.html</code>（本草图不重复标注）。F10 状态栏浅字与 LiveView 同步（二级 cover 打开时不重复处理）。
+    </div>
+  </aside>
+</div>
+</body>
+</html>

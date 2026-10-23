@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参数均衡器 EQ · 设计草图 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f3 { background: #34C759; }
+.chip.f7 { background: #5856D6; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.stage { display: flex; gap: 42px; justify-content: center; align-items: flex-start; padding: 34px 24px; flex-wrap: wrap; }
+.phone { width: 360px; height: 780px; border-radius: 36px; border: 10px solid #10141a; background: #121212; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 30px 80px rgba(15,25,45,.45), inset 0 0 0 2px #2a313c; }
+.ph-label { text-align: center; font-size: 12.5px; color: #5b6472; margin-top: 14px; font-weight: 600; }
+.statusbar { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: #E6E6E6; font-size: 12px; font-weight: 600; }
+.statusbar .sic { display: flex; align-items: center; gap: 5px; }
+.sig { display: flex; align-items: flex-end; gap: 1.5px; }
+.sig i { width: 3px; background: #E6E6E6; border-radius: 1px; display: block; }
+.bat { width: 20px; height: 10px; border: 1.4px solid #E6E6E6; border-radius: 3px; position: relative; opacity: .9; }
+.bat::after { content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 60%; background: #E6E6E6; border-radius: 1px; }
+.topbar { display: flex; align-items: center; height: 56px; padding: 0 16px 0 8px; position: relative; }
+.topbar .chev { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.6); }
+.topbar .chev svg { width: 26px; height: 26px; }
+.topbar .tt { font-size: 20px; font-weight: 700; color: #fff; margin-left: 4px; }
+.topbar .host { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.6); max-width: 150px; white-space: nowrap; overflow: hidden; }
+.gainrow { display: flex; align-items: center; gap: 10px; height: 50px; margin: 2px 20px 0; }
+.gmic { width: 20px; height: 20px; color: rgba(255,255,255,.85); flex-shrink: 0; }
+.gslider { flex: 1; position: relative; height: 50px; }
+.gtrack { position: absolute; left: 0; right: 0; top: 30px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); }
+.gfill { position: absolute; top: 30px; height: 4px; border-radius: 2px; background: #0A84FF; left: 50%; width: 6.25%; }
+.gthumb { position: absolute; top: 24px; left: 56.25%; width: 16px; height: 16px; margin-left: -8px; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.gbubble { position: absolute; top: 0; left: 56.25%; transform: translateX(-50%); font-size: 9.5px; font-weight: 700; color: #fff; background: #1C1C1E; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; padding: 2px 8px; white-space: nowrap; }
+.gscale { position: absolute; left: 0; right: 0; top: 42px; height: 10px; }
+.gscale i { position: absolute; transform: translateX(-50%); font-size: 7.5px; font-style: normal; color: rgba(255,255,255,.35); }
+.gscale i:first-child { transform: none; }
+.gscale i:last-child { transform: translateX(-100%); }
+.glimit { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.glimit span { font-size: 9px; font-weight: 700; letter-spacing: .5px; color: rgba(255,255,255,.5); }
+.gsw { width: 34px; height: 20px; border-radius: 10px; background: rgba(255,255,255,.18); position: relative; flex-shrink: 0; }
+.gsw.on { background: #34C759; }
+.gsw i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; }
+.gsw.on i { left: 16px; }
+.vizcard { margin: 4px 20px 0; height: 320px; border-radius: 15px; position: relative; overflow: hidden;
+  background: rgba(255,255,255,.045); backdrop-filter: blur(24px) saturate(130%); -webkit-backdrop-filter: blur(24px) saturate(130%); border: 1px solid rgba(255,255,255,.09); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.vizcard .glowline { position: absolute; inset: 0; background: radial-gradient(70% 45% at 50% 78%, rgba(10,132,255,.20) 0%, rgba(0,0,0,0) 70%); }
+.eq { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 7px; height: 150px; }
+.eq i { width: 12px; border-radius: 6px; background: linear-gradient(180deg, #64D2FF, #0A84FF); animation: eq 1.05s ease-in-out infinite alternate; box-shadow: 0 0 14px rgba(20,150,255,.35); }
+@keyframes eq { from { height: 14%; } to { height: 96%; } }
+.expand { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 22px; background: rgba(0,0,0,.4); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; }
+.expand svg { width: 22px; height: 22px; }
+.clipled { position: absolute; top: 14px; right: 66px; height: 16px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,106,106,.4); color: rgba(255,106,106,.55); font-size: 8px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; }
+.scrim { position: absolute; left: 0; right: 0; top: 0; background: rgba(0,0,0,.32); z-index: 40; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(30,30,32,.92); backdrop-filter: blur(40px) saturate(130%); -webkit-backdrop-filter: blur(40px) saturate(130%); border: 1px solid rgba(255,255,255,.10); border-bottom: none; border-radius: 24px 24px 0 0; box-shadow: 0 -18px 50px rgba(0,0,0,.5); overflow: hidden; z-index: 50; }
+.grab { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.22); margin: 10px auto 0; }
+.srow { display: flex; align-items: center; padding: 0 20px; height: 60px; }
+.stcol { display: flex; flex-direction: column; }
+.tt { font-size: 15px; color: #F0F0F2; }
+.ss { font-size: 11.5px; color: #98989F; margin-top: 4px; }
+.chev { margin-left: auto; color: #5A5A63; display: flex; }
+.chev svg { width: 15px; height: 15px; }
+.sdiv { height: 1px; background: rgba(255,255,255,.07); margin: 0 20px; }
+.pgroup { padding: 12px 20px 14px; }
+.plabel { font-size: 11.5px; color: #98989F; }
+.prow { display: flex; gap: 8px; margin-top: 10px; }
+.pill { flex: 1; height: 34px; border-radius: 17px; background: #2A2A31; color: #C7C7CC; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.pill.on { background: #0A84FF; color: #fff; font-weight: 600; }
+.eqexp { margin: 2px 20px 0; background: #161619; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 14px; }
+.eqexp svg { flex-shrink: 0; display: block; }
+.eqadj { margin-left: auto; color: #0A84FF; font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.hintrow { padding: 16px 20px 0; text-align: center; font-size: 10.5px; color: #6A6A72; }
+.eqhead { display: flex; align-items: center; padding: 6px 20px 0; height: 58px; }
+.eqlabel { font-size: 15px; color: #F0F0F2; font-weight: 600; }
+.eqsub { font-size: 11.5px; color: #98989F; margin-top: 3px; }
+.eqbyp { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.eqbyp span { font-size: 12px; color: #98989F; }
+.eswitch { width: 40px; height: 24px; border-radius: 12px; background: rgba(255,255,255,.18); position: relative; flex-shrink: 0; }
+.eswitch i { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 10px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.brow { display: flex; align-items: center; gap: 10px; padding: 0 20px; height: 48px; }
+.brow + .brow { border-top: 1px solid rgba(255,255,255,.05); }
+.bnum { width: 20px; height: 20px; border-radius: 10px; background: rgba(10,132,255,.15); color: #409CFF; font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bname { width: 88px; font-size: 11px; color: #C7C7CC; flex-shrink: 0; }
+.bslider { flex: 1; position: relative; height: 20px; }
+.btrack { position: absolute; left: 0; right: 0; top: 8.5px; height: 3px; border-radius: 1.5px; background: rgba(255,255,255,.13); }
+.bzero { position: absolute; left: 50%; top: 5.5px; width: 1px; height: 9px; background: rgba(255,255,255,.28); }
+.bfill { position: absolute; top: 8.5px; height: 3px; background: #0A84FF; }
+.bthumb { position: absolute; top: 4px; width: 12px; height: 12px; border-radius: 6px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.bgv { width: 54px; text-align: right; font-size: 12.5px; font-weight: 600; color: #E6E6E6; flex-shrink: 0; }
+.bgv span { font-size: 9px; color: #8A8A95; font-weight: 400; margin-left: 2px; }
+.bq { width: 46px; text-align: right; font-size: 10.5px; color: #8A8A95; flex-shrink: 0; }
+.bq.dim { color: #55555F; }
+.prow2 { display: flex; gap: 8px; padding: 16px 20px 0; }
+.pchip { height: 32px; padding: 0 15px; border-radius: 16px; background: #2A2A31; color: #C7C7CC; font-size: 12px; display: flex; align-items: center; }
+.pchip.on { background: rgba(10,132,255,.16); color: #409CFF; font-weight: 600; box-shadow: inset 0 0 0 1px rgba(10,132,255,.5); }
+.hs { position: absolute; width: 22px; height: 22px; border-radius: 11px; background: #FF2D55; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255,45,85,.25), 0 2px 6px rgba(0,0,0,.3); z-index: 60; pointer-events: none; }
+.annos { max-width: 400px; display: flex; column-count: 1; flex-direction: column; gap: 14px; }
+.anno { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 17px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.anno .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.anno .no { width: 24px; height: 24px; border-radius: 12px; background: #FF2D55; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.anno h4 { font-size: 14px; }
+.anno p { font-size: 12.5px; color: #4a5261; line-height: 1.85; margin-top: 8px; }
+.anno code { background: #eef2f7; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; color: #0a5ab8; }
+.annos .foot { font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">参数均衡器 EQ</span>
+  <span class="sub">5 频段 biquad · 预设 · 曲线实时合成</span>
+  <span class="spacer"></span>
+  <span class="chip f7">F7</span>
+  <span class="chip f3">F3</span>
+  <span class="chip keep">保持</span>
+</header>
+<div class="stage">
+  <div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="topbar">
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <span class="tt">直播</span>
+        <span class="host">192.168.1.20:9000</span>
+      </div>
+      <div class="gainrow">
+        <svg class="gmic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg>
+        <div class="gslider">
+          <div class="gtrack"></div>
+          <div class="gfill"></div>
+          <div class="gthumb"></div>
+          <div class="gbubble">+3.0 dB</div>
+          <div class="gscale"><i style="left:0">-24</i><i style="left:25%">-12</i><i style="left:50%">0</i><i style="left:75%">+12</i><i style="left:100%">+24</i></div>
+        </div>
+        <div class="glimit"><span>LIMIT</span><div class="gsw on"><i></i></div></div>
+      </div>
+      <div class="vizcard">
+        <div class="glowline"></div>
+        <div class="clipled">CLIP</div>
+        <div class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/></svg></div>
+        <div class="eq">
+          <i style="animation-delay:0s; animation-duration:.9s"></i>
+          <i style="animation-delay:.15s; animation-duration:1.2s"></i>
+          <i style="animation-delay:.05s; animation-duration:.8s"></i>
+          <i style="animation-delay:.3s; animation-duration:1.05s"></i>
+          <i style="animation-delay:.12s; animation-duration:.95s"></i>
+          <i style="animation-delay:.22s; animation-duration:1.3s"></i>
+          <i style="animation-delay:.4s; animation-duration:.85s"></i>
+          <i style="animation-delay:.18s; animation-duration:1.1s"></i>
+          <i style="animation-delay:.34s; animation-duration:.9s"></i>
+          <i style="animation-delay:.08s; animation-duration:1.25s"></i>
+          <i style="animation-delay:.26s; animation-duration:1s"></i>
+          <i style="animation-delay:.44s; animation-duration:1.15s"></i>
+        </div>
+      </div>
+      <div class="scrim" style="height: 272px;"></div>
+      <div class="sheet" style="top: 272px; height: 508px;">
+        <div class="grab"></div>
+        <div class="srow">
+          <div class="stcol"><span class="tt">音源</span><span class="ss">麦克风 · HarmonyMic</span></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+        <div class="sdiv"></div>
+        <div class="srow">
+          <div class="stcol"><span class="tt">音频参数</span><span class="ss">48kHz · 16bit · 单声道</span></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+        <div class="sdiv"></div>
+        <div class="pgroup">
+          <div class="plabel">采样率</div>
+          <div class="prow">
+            <div class="pill">16 kHz</div>
+            <div class="pill">44.1 kHz</div>
+            <div class="pill on">48 kHz</div>
+          </div>
+        </div>
+        <div class="sdiv"></div>
+        <div class="srow">
+          <div class="stcol"><span class="tt">降噪</span><span class="ss">深度降噪 · 已启用</span></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+        <div class="sdiv"></div>
+        <div class="srow">
+          <div class="stcol"><span class="tt">参数均衡器 EQ</span><span class="ss">预设 人声增强</span></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></span>
+        </div>
+        <div class="eqexp">
+          <svg width="170" height="44" viewBox="0 0 170 44">
+            <line x1="8" y1="24" x2="162" y2="24" stroke="rgba(255,255,255,.09)" stroke-width="1"/>
+            <line x1="47" y1="6" x2="47" y2="38" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <line x1="86" y1="6" x2="86" y2="38" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <line x1="125" y1="6" x2="125" y2="38" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <path d="M8,24 C20,26 28,28 38,29 C48,30 56,26 66,20 C76,14 88,10 100,9 C112,8 124,6 134,8 C144,10 154,12 162,13" fill="none" stroke="#0A84FF" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="100" cy="9" r="3" fill="#0A84FF" stroke="#fff" stroke-width="1.2"/>
+          </svg>
+          <span class="eqadj">调节 ›</span>
+        </div>
+        <div class="hintrow">参数修改实时生效 · 经 CONFIG 帧下发至 PC</div>
+      </div>
+      <div class="hs" style="left: 296px; top: 576px;">1</div>
+    </div>
+    <div class="ph-label">直播配置 sheet · EQ 折叠展开（预设 人声增强）</div>
+  </div>
+  <div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="topbar">
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <span class="tt">直播</span>
+        <span class="host">192.168.1.20:9000</span>
+      </div>
+      <div class="gainrow">
+        <svg class="gmic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg>
+        <div class="gslider">
+          <div class="gtrack"></div>
+          <div class="gfill"></div>
+          <div class="gthumb"></div>
+          <div class="gbubble">+3.0 dB</div>
+          <div class="gscale"><i style="left:0">-24</i><i style="left:25%">-12</i><i style="left:50%">0</i><i style="left:75%">+12</i><i style="left:100%">+24</i></div>
+        </div>
+        <div class="glimit"><span>LIMIT</span><div class="gsw on"><i></i></div></div>
+      </div>
+      <div class="scrim" style="height: 160px;"></div>
+      <div class="sheet" style="top: 160px; height: 620px;">
+        <div class="grab"></div>
+        <div class="srow">
+          <div class="stcol"><span class="tt">降噪</span><span class="ss">深度降噪 · 已启用</span></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+        <div class="sdiv"></div>
+        <div class="eqhead">
+          <div class="stcol"><span class="eqlabel">参数均衡器</span><span class="eqsub">已启用 · 预设 人声增强</span></div>
+          <div class="eqbyp"><span>旁通</span><div class="eswitch"><i></i></div></div>
+        </div>
+        <div style="margin: 8px 16px 0;">
+          <svg width="100%" viewBox="0 0 320 124">
+            <line x1="24" y1="6" x2="304" y2="6" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="24" y1="33" x2="304" y2="33" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="24" y1="87" x2="304" y2="87" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="24" y1="114" x2="304" y2="114" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="24" y1="60" x2="304" y2="60" stroke="rgba(255,255,255,.13)" stroke-width="1"/>
+            <line x1="57.6" y1="6" x2="57.6" y2="114" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <line x1="169.3" y1="6" x2="169.3" y2="114" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <line x1="281.1" y1="6" x2="281.1" y2="114" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+            <path d="M24,67 C36,68 46,69 57.6,69 C76,69 94,73 110.9,73.5 C122,73.8 130,70 140,64.5 C150,59 159,53 169.3,53 C180,53 188,50 197,49 C206,48 213,42 222.7,42 C233,42 241,44 248,46.5 C257,49.5 263,51 270.3,51 C283,51 293,51 304,51 L304,114 L24,114 Z" fill="rgba(10,132,255,.07)"/>
+            <path d="M24,67 C36,68 46,69 57.6,69 C76,69 94,73 110.9,73.5 C122,73.8 130,70 140,64.5 C150,59 159,53 169.3,53 C180,53 188,50 197,49 C206,48 213,42 222.7,42 C233,42 241,44 248,46.5 C257,49.5 263,51 270.3,51 C283,51 293,51 304,51" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="57.6" cy="69" r="4.5" fill="#0A84FF" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="110.9" cy="73.5" r="4.5" fill="#0A84FF" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="169.3" cy="53" r="4.5" fill="#0A84FF" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="222.7" cy="42" r="4.5" fill="#0A84FF" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="270.3" cy="51" r="4.5" fill="#0A84FF" stroke="#fff" stroke-width="1.5"/>
+            <text x="2" y="10" font-size="7.5" fill="#6A6A72">+12</text>
+            <text x="2" y="63" font-size="7.5" fill="#6A6A72">0</text>
+            <text x="2" y="117" font-size="7.5" fill="#6A6A72">-12</text>
+            <text x="24" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">50</text>
+            <text x="57.6" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">100</text>
+            <text x="110.9" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">300</text>
+            <text x="169.3" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">1k</text>
+            <text x="222.7" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">3k</text>
+            <text x="270.3" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">8k</text>
+            <text x="304" y="121" font-size="8" fill="#6A6A72" text-anchor="middle">16k</text>
+          </svg>
+        </div>
+        <div style="height: 6px;"></div>
+        <div class="brow">
+          <div class="bnum">1</div>
+          <div class="bname">低架 · 100 Hz</div>
+          <div class="bslider">
+            <div class="btrack"></div>
+            <div class="bzero"></div>
+            <div class="bfill" style="left: 41.7%; width: 8.3%;"></div>
+            <div class="bthumb" style="left: 41.7%; margin-left: -6px;"></div>
+          </div>
+          <div class="bgv">-2.0<span>dB</span></div>
+          <div class="bq dim">Q —</div>
+        </div>
+        <div class="brow">
+          <div class="bnum">2</div>
+          <div class="bname">峰值 · 300 Hz</div>
+          <div class="bslider">
+            <div class="btrack"></div>
+            <div class="bzero"></div>
+            <div class="bfill" style="left: 41.7%; width: 8.3%;"></div>
+            <div class="bthumb" style="left: 41.7%; margin-left: -6px;"></div>
+          </div>
+          <div class="bgv">-2.0<span>dB</span></div>
+          <div class="bq">Q 0.90</div>
+        </div>
+        <div class="brow">
+          <div class="bnum">3</div>
+          <div class="bname">峰值 · 1 kHz</div>
+          <div class="bslider">
+            <div class="btrack"></div>
+            <div class="bzero"></div>
+            <div class="bfill" style="left: 50%; width: 6.25%;"></div>
+            <div class="bthumb" style="left: 56.25%; margin-left: -6px;"></div>
+          </div>
+          <div class="bgv">+1.5<span>dB</span></div>
+          <div class="bq">Q 0.80</div>
+        </div>
+        <div class="brow">
+          <div class="bnum">4</div>
+          <div class="bname">峰值 · 3 kHz</div>
+          <div class="bslider">
+            <div class="btrack"></div>
+            <div class="bzero"></div>
+            <div class="bfill" style="left: 50%; width: 16.7%;"></div>
+            <div class="bthumb" style="left: 66.7%; margin-left: -6px;"></div>
+          </div>
+          <div class="bgv">+4.0<span>dB</span></div>
+          <div class="bq">Q 0.70</div>
+        </div>
+        <div class="brow">
+          <div class="bnum">5</div>
+          <div class="bname">高架 · 8 kHz</div>
+          <div class="bslider">
+            <div class="btrack"></div>
+            <div class="bzero"></div>
+            <div class="bfill" style="left: 50%; width: 8.3%;"></div>
+            <div class="bthumb" style="left: 58.3%; margin-left: -6px;"></div>
+          </div>
+          <div class="bgv">+2.0<span>dB</span></div>
+          <div class="bq dim">Q —</div>
+        </div>
+        <div class="prow2">
+          <div class="pchip">平直</div>
+          <div class="pchip on">人声增强</div>
+          <div class="pchip">低切防喷</div>
+          <div class="pchip">明亮</div>
+        </div>
+      </div>
+      <div class="hs" style="left: 298px; top: 266px;">2</div>
+      <div class="hs" style="left: 170px; top: 360px;">5</div>
+      <div class="hs" style="left: 170px; top: 600px;">3</div>
+      <div class="hs" style="left: 100px; top: 695px;">4</div>
+    </div>
+    <div class="ph-label">EQ 全屏面板 · 已启用态（旁通 OFF = EQ 生效）</div>
+  </div>
+  <div class="annos">
+    <div class="anno">
+      <div class="top"><span class="no">1</span><h4>位置与入口</h4><span class="chip f7">F7</span><span class="chip keep">保持</span></div>
+      <p>入口在直播配置 sheet，降噪行之下（折叠行 + 迷你曲线预览，点「调节」进入全屏面板）。管线位置：降噪之后、增益之前。Connect 页不设第二入口，避免两处状态分叉。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">2</span><h4>默认旁通</h4><span class="chip f7">F7</span></div>
+      <p>首启默认旁通：<code>bit</code> 级直通，不构建 biquad、零开销。旁通开关 OFF = EQ 生效（图示为生效态演示）。开关切换与参数修改均经 CONFIG 帧下发，PC 端暂不消费、仅透传语义。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">3</span><h4>5 × biquad · RBJ</h4><span class="chip f7">F7</span><span class="chip f3">F3</span></div>
+      <p>低架 100Hz / 峰值 300Hz·1k·3k / 高架 8k，系数按 RBJ Audio EQ Cookbook 公式计算。G ±12dB 步进 0.5，Q 0.5~4（Shelf 频段无 Q，置灰）。48kHz 下每帧 5 个二阶节，实时裕量充足。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">4</span><h4>预设 → 自定义</h4><span class="chip f7">F7</span></div>
+      <p>预设 = 参数快照：平直 / 人声增强 / 低切防喷 / 明亮。选预设整体写入 5 组参数；手动调节任一频段后脱离预设，标记为「自定义」。预设数据内置于 <code>EqStage</code>。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">5</span><h4>曲线与持久化</h4><span class="chip f7">F7</span></div>
+      <p>幅频曲线由 5 组系数实时合成，Canvas 采样 128 点，随滑杆跟手刷新。<code>cfgEqBypass / cfgEqBands / cfgEqPreset</code> 经 preferences 持久化，重进直播自动恢复上次状态。</p>
+    </div>
+    <div class="foot">落地要点：EqStage 实现 IAudioStage 接口，插在 NrStage 之后、GainStage 之前；旁通时不构链直通；频段圆点与曲线同色系（accent #0A84FF）；Q 值滑杆在峰值守恒与带宽直观之间取折中，范围 0.5~4。页顶增益行为 Live 完整行（刻度+气泡），与 live.html 同源；Connect 卡内为迷你快捷控件（见 connect.html ⑨）。图示曲线为静态示意，真机由 EqStage 系数实时合成、随滑杆跟手刷新。</div>
+  </div>
+</div>
+</body>
+</html>

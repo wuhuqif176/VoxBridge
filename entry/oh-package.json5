@@ -1,0 +1,13 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "libaudio_nr.so": "file:./src/main/cpp/types/libaudio_nr",
+    "common": "file:../common"
+  }
+}
+

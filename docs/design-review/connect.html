@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect 连接页 · 设计草图 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f1 { background: #007AFF; }
+.chip.f2 { background: #AF52DE; }
+.chip.f3 { background: #34C759; }
+.chip.f4 { background: #FF9500; }
+.chip.f5 { background: #FF2D55; }
+.chip.f6 { background: #32ADE6; }
+.chip.f7 { background: #5856D6; }
+.chip.f8 { background: #00C7BE; }
+.chip.keep { background: #8E8E93; }
+.tbtn { cursor: pointer; border: none; background: #121212; color: #fff; font-size: 12px; padding: 7px 16px; border-radius: 16px; font-family: inherit; }
+.stage { display: flex; gap: 42px; justify-content: center; align-items: flex-start; padding: 34px 24px; flex-wrap: wrap; }
+.phone { --page:#121212; --glow:#151C2C; --card:rgba(33,33,33,.55); --line:rgba(255,255,255,.10); --txt:#FFFFFF; --txt2:rgba(235,235,245,.60); --hint:rgba(235,235,245,.35); --accent:#007AFF; --accent10:rgba(0,122,255,.22); --unsel:rgba(118,118,128,.24); --green:#34C759; --warn:#FF9500; --danger:#FF6A6A; --log:#1C1C1E;
+  width: 360px; height: 780px; border-radius: 36px; border: 10px solid #10141a; background: var(--page); overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 30px 80px rgba(15,25,45,.4), inset 0 0 0 2px #2a313c; }
+body.lt .phone { --page:#EAEAEA; --glow:#E8EEF7; --card:rgba(255,255,255,.62); --line:rgba(0,0,0,.06); --txt:#121212; --txt2:rgba(60,60,67,.60); --hint:rgba(60,60,67,.35); --accent10:rgba(0,122,255,.10); --unsel:rgba(118,118,128,.12); --log:#F2F2F7; }
+.glowbg { position: absolute; inset: 0; background: radial-gradient(90% 55% at 50% 0%, var(--glow) 0%, rgba(0,0,0,0) 72%); pointer-events: none; }
+.statusbar { position: relative; height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: var(--txt); font-size: 12px; font-weight: 600; }
+.statusbar .sic { display: flex; align-items: center; gap: 5px; }
+.sig { display: flex; align-items: flex-end; gap: 1.5px; }
+.sig i { width: 3px; background: var(--txt); border-radius: 1px; display: block; }
+.bat { width: 20px; height: 10px; border: 1.4px solid var(--txt); border-radius: 3px; position: relative; opacity: .9; }
+.bat::after { content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 60%; background: var(--txt); border-radius: 1px; }
+.tabpage { position: absolute; inset: 0; }
+.content { position: absolute; top: 34px; bottom: 0; left: 0; right: 0; overflow: hidden; padding: 16px 20px 110px; display: flex; flex-direction: column; gap: 12px; }
+.mat { background: var(--card); backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.10); }
+.card { border-radius: 15px; }
+.dev { display: flex; align-items: center; gap: 12px; padding: 14px; }
+.appicon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(150deg, #0A84FF, #0060DF); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,110,255,.35); }
+.dev-mid { flex: 1; min-width: 0; }
+.dev-name { font-size: 16px; font-weight: 600; color: var(--txt); }
+.dev-sub { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+.dev-right { text-align: right; }
+.iplabel { font-size: 12px; color: var(--hint); }
+.ipval { font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 1px; }
+.bearer { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--txt2); background: var(--unsel); border-radius: 9px; padding: 2px 8px; margin-top: 5px; }
+.bearer svg { width: 10px; height: 10px; }
+.cfgcard { padding: 12px; }
+.cfg-head { display: flex; align-items: center; height: 40px; }
+.cfg-head b { font-size: 16px; font-weight: 600; color: var(--txt); }
+.cfg-row { display: flex; align-items: center; height: 48px; }
+.cfg-row .tt { font-size: 14px; font-weight: 600; color: var(--txt); }
+.cfg-row .ss { font-size: 12px; color: var(--hint); margin-top: 2px; }
+.cfg-row .cmid { flex: 1; min-width: 0; }
+.cfg-row .chev { color: var(--hint); font-size: 18px; width: 40px; text-align: center; }
+.cfg-div { height: 1px; background: var(--line); }
+.conncard { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.ep-row { display: flex; align-items: center; gap: 6px; width: 100%; height: 44px; }
+.ep-row .lb { font-size: 12px; color: var(--txt2); }
+.ep-row .val { font-size: 14px; font-weight: 600; color: var(--txt); margin-left: auto; }
+.ep-row .chev { color: var(--hint); font-size: 16px; width: 32px; text-align: center; }
+.bigbtn { width: 96px; height: 96px; border-radius: 48px; background: var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #fff; box-shadow: 0 10px 26px rgba(52,199,89,.35); }
+.bigbtn b { font-size: 16px; font-weight: 800; }
+.bigbtn span { font-size: 12px; opacity: .85; }
+.statconn { font-size: 12px; color: var(--hint); }
+.minibar { position: absolute; left: 20px; right: 20px; bottom: 70px; height: 60px; border-radius: 15px; display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--txt); }
+.minibar .wv { color: var(--green); width: 22px; height: 22px; flex-shrink: 0; }
+.mini-mid { flex: 1; min-width: 0; }
+.mini-t { font-size: 14px; font-weight: 600; }
+.mini-s { font-size: 12px; color: var(--hint); margin-top: 1px; white-space: nowrap; }
+.minibar .cup { width: 20px; height: 20px; color: var(--txt2); flex-shrink: 0; }
+.tabbar { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 56px; border-radius: 24px; display: flex; }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--txt2); cursor: pointer; user-select: none; }
+.tab svg { width: 25px; height: 25px; }
+.tab span { font-size: 10px; }
+.tab.on { color: var(--accent); }
+.setcard { padding: 12px; }
+.set-title { font-size: 16px; font-weight: 600; color: var(--txt); padding: 8px 10px 6px; display: flex; align-items: center; gap: 8px; }
+.newbadge { font-size: 9px; background: #FF2D55; color: #fff; border-radius: 7px; padding: 1.5px 7px; font-weight: 700; }
+.themerow, .devrow { display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 10px; border-radius: 10px; }
+.themerow.sel, .devrow.sel { background: var(--accent10); }
+.tr-mid { flex: 1; }
+.tr-t { font-size: 16px; font-weight: 600; color: var(--txt); }
+.tr-s { font-size: 12px; color: var(--hint); margin-top: 1px; }
+.radio { width: 20px; height: 20px; border-radius: 10px; flex-shrink: 0; }
+.radio.on { background: var(--accent); }
+.radio.off { border: 1.5px solid var(--hint); }
+.devrow .tr-t { font-size: 15px; }
+.diag-head { display: flex; align-items: center; height: 50px; padding: 0 10px; }
+.diag-head b { font-size: 16px; font-weight: 600; color: var(--txt); flex: 1; }
+.reprobe { font-size: 13px; color: var(--accent); background: var(--unsel); border-radius: 20px; padding: 0 14px; height: 40px; display: flex; align-items: center; }
+.probe-txt { font-size: 12px; color: var(--txt2); padding: 0 10px 8px; line-height: 1.6; }
+.loglabel { font-size: 12px; color: var(--txt2); padding: 0 10px 6px; }
+.logbox { margin: 0 10px 10px; height: 120px; border-radius: 10px; background: var(--log); padding: 8px; font-size: 12px; font-family: Consolas, monospace; color: var(--txt); overflow: hidden; line-height: 1.7; }
+.about-row { display: flex; align-items: center; height: 50px; padding: 0 10px; }
+.about-row b { font-size: 16px; font-weight: 600; color: var(--txt); flex: 1; }
+.about-row span { font-size: 13px; color: var(--txt2); }
+.about-sub { font-size: 12px; color: var(--hint); padding: 0 10px 8px; line-height: 1.6; }
+.brow2 { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 5px; }
+.brow2 .bearer { margin-top: 0; }
+.qbadge { display: inline-flex; align-items: center; gap: 4px; height: 17px; padding: 0 8px; border-radius: 9px; font-size: 10px; font-weight: 600; }
+.qbadge i { width: 5px; height: 5px; border-radius: 3px; display: block; }
+.qbadge.good { color: #34C759; background: rgba(52,199,89,.14); }
+.qbadge.good i { background: #34C759; }
+.qbadge.fair { color: #FF9500; background: rgba(255,149,0,.14); }
+.qbadge.fair i { background: #FF9500; }
+.qbadge.weak { color: #FF6A6A; background: rgba(255,106,106,.14); }
+.qbadge.weak i { background: #FF6A6A; }
+.cfg-row.gain { height: 48px; }
+.cgwrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.cgslider { position: relative; width: 90px; height: 16px; }
+.cgtrack { position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: var(--unsel); }
+.cgfill { position: absolute; left: 50%; top: 6px; height: 4px; border-radius: 2px; width: 6.25%; background: var(--accent); }
+.cgthumb { position: absolute; top: 0; left: 56.25%; width: 16px; height: 16px; margin-left: -8px; border-radius: 8px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.climit { display: flex; align-items: center; gap: 5px; }
+.climit span { font-size: 9px; font-weight: 700; letter-spacing: .5px; color: var(--hint); }
+.cgsw { width: 34px; height: 20px; border-radius: 10px; background: var(--unsel); position: relative; flex-shrink: 0; }
+.cgsw.on { background: var(--green); }
+.cgsw i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; }
+.cgsw.on i { left: 16px; }
+.qual-prev { margin-top: 10px; border: 1px solid #cfe3ff; background: #f0f6ff; border-radius: 12px; padding: 12px 14px; }
+.qual-prev .t { font-size: 11px; font-weight: 700; color: #0a5ab8; margin-bottom: 8px; }
+.qrow3 { display: flex; gap: 8px; }
+.weakline { margin-top: 8px; font-size: 11.5px; color: #CC6A00; background: #fff; border: 1px dashed #FF9500; border-radius: 8px; padding: 6px 10px; }
+.hs { position: absolute; width: 22px; height: 22px; border-radius: 11px; background: #FF2D55; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255,45,85,.25), 0 2px 6px rgba(0,0,0,.3); z-index: 60; pointer-events: none; }
+body.on-settings .hs.c { display: none; }
+.annos { max-width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.anno { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 17px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.anno .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.anno .no { width: 24px; height: 24px; border-radius: 12px; background: #FF2D55; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.anno h4 { font-size: 14px; }
+.anno p { font-size: 12.5px; color: #4a5261; line-height: 1.85; margin-top: 8px; }
+.anno code { background: #eef2f7; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; color: #0a5ab8; }
+.annos .foot { font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 12px 16px; }
+.offline-prev { margin-top: 10px; border: 1px solid #ffdcb0; background: #fff7ed; border-radius: 12px; padding: 12px 14px; }
+.offline-prev .t { font-size: 11px; font-weight: 700; color: #9a5b13; margin-bottom: 8px; }
+.offline-prev .warnrow { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #FF9500; border-radius: 10px; padding: 8px 10px; font-size: 11.5px; color: #CC6A00; }
+.offline-prev .disbtn { margin-top: 8px; width: 120px; height: 30px; border-radius: 15px; background: #c9d2de; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">Connect 连接页</span>
+  <span class="sub">唯一 @Entry 根页 · running 态（串流中）</span>
+  <span class="spacer"></span>
+  <span class="chip f1">F1</span>
+  <span class="chip f2">F2</span>
+  <span class="chip f3">F3</span>
+  <span class="chip f4">F4</span>
+  <span class="chip f5">F5</span>
+  <span class="chip f6">F6</span>
+  <span class="chip f7">F7</span>
+  <span class="chip f8">F8</span>
+  <button class="tbtn" id="themeBtn">切换到浅色主题</button>
+</header>
+<div class="stage">
+  <div class="phone">
+    <div class="glowbg"></div>
+    <div class="statusbar">
+      <span>12:30</span>
+      <span class="sic">
+        <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+        <span class="bat"></span>
+      </span>
+    </div>
+
+    <div class="tabpage" id="pgConnect">
+      <div class="content">
+        <div class="card mat dev">
+          <div class="appicon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg>
+          </div>
+          <div class="dev-mid">
+            <div class="dev-name">HarmonyMic</div>
+            <div class="dev-sub">手机 → PC 网络麦克风</div>
+          </div>
+          <div class="dev-right">
+            <div class="iplabel">本机 IP</div>
+            <div class="ipval">192.168.1.108</div>
+            <div class="brow2">
+              <span class="bearer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><circle cx="12" cy="17.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+                WiFi
+              </span>
+              <span class="qbadge good"><i></i>网络 优</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mat cfgcard">
+          <div class="cfg-head"><b>连接配置</b></div>
+          <div class="cfg-row">
+            <div class="cmid"><div class="tt">音源</div><div class="ss">通话增强</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="cfg-div"></div>
+          <div class="cfg-row">
+            <div class="cmid"><div class="tt">音频参数</div><div class="ss">48kHz · 16bit · 单声道</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="cfg-div"></div>
+          <div class="cfg-row">
+            <div class="cmid"><div class="tt">降噪</div><div class="ss">设备默认</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="cfg-div"></div>
+          <div class="cfg-row gain">
+            <div class="cmid"><div class="tt">输入增益</div><div class="ss">+3.0 dB · 限制器开</div></div>
+            <div class="cgwrap">
+              <div class="cgslider">
+                <div class="cgtrack"></div>
+                <div class="cgfill"></div>
+                <div class="cgthumb"></div>
+              </div>
+              <div class="climit"><span>LIMIT</span><div class="cgsw on"><i></i></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mat conncard">
+          <div class="ep-row">
+            <span class="lb">目标端点</span>
+            <span class="val">192.168.1.20:9000</span>
+            <span class="chev">›</span>
+          </div>
+          <div class="bigbtn"><b>进入直播</b><span>串流进行中</span></div>
+          <div class="statconn">已连接 · 录音 03:24</div>
+        </div>
+      </div>
+      <div class="hs c" style="left: 158px; top: 58px;">1</div>
+      <div class="hs c" style="left: 300px; top: 108px;">2</div>
+      <div class="hs c" style="left: 24px; top: 158px;">3</div>
+      <div class="hs c" style="left: 296px; top: 252px;">4</div>
+      <div class="hs c" style="left: 232px; top: 518px;">5</div>
+      <div class="hs c" style="left: 296px; top: 350px;">9</div>
+    </div>
+
+    <div class="tabpage" id="pgSettings" style="display:none">
+      <div class="content">
+        <div class="card mat setcard">
+          <div class="set-title">外观</div>
+          <div class="themerow sel"><div class="tr-mid"><div class="tr-t">跟随系统</div><div class="tr-s">自动匹配系统深浅色</div></div><div class="radio on"></div></div>
+          <div class="themerow"><div class="tr-mid"><div class="tr-t">浅色</div><div class="tr-s">始终使用浅色主题</div></div><div class="radio off"></div></div>
+          <div class="themerow"><div class="tr-mid"><div class="tr-t">深色</div><div class="tr-s">始终使用深色主题</div></div><div class="radio off"></div></div>
+        </div>
+        <div class="card mat setcard">
+          <div class="set-title">麦克风设备 <span class="newbadge">F5 新增</span></div>
+          <div class="devrow sel"><div class="tr-mid"><div class="tr-t">手机麦克风</div><div class="tr-s">内置 · 当前使用</div></div><div class="radio on"></div></div>
+          <div class="devrow"><div class="tr-mid"><div class="tr-t">WH-1000XM5</div><div class="tr-s">蓝牙</div></div><div class="radio off"></div></div>
+          <div class="about-sub">列表来自 AudioSessionManager · 选择后经 selectMediaInputDevice 生效</div>
+        </div>
+        <div class="card mat setcard">
+          <div class="diag-head"><b>诊断</b><span class="reprobe">重新探测</span></div>
+          <div class="probe-txt">已探测：12 组采样组合，10 组可用 · DeepFilterNet3 可用</div>
+          <div class="loglabel">运行日志</div>
+          <div class="logbox">[12:30:01] 串流已启动 48kHz/16bit/单声道<br>[12:30:01] TCP 已连接 192.168.1.20:9000<br>[12:31:02] 网络质量: 弱 · 自动降级 16kHz<br>[12:31:40] 网络质量: 优 · 已升回 48kHz<br>[12:33:24] 已发送 2.1 MB</div>
+        </div>
+        <div class="card mat setcard">
+          <div class="about-row"><b>HarmonyMic</b><span>v1.0.0</span></div>
+          <div class="about-sub">手机 → PC 网络麦克风 · PCM over TCP · DeepFilterNet3 端侧降噪</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="minibar mat">
+      <svg class="wv" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="10" width="2.4" height="4" rx="1.2"/><rect x="6.4" y="7" width="2.4" height="10" rx="1.2"/><rect x="10.8" y="3.5" width="2.4" height="17" rx="1.2"/><rect x="15.2" y="6" width="2.4" height="12" rx="1.2"/><rect x="19.6" y="9" width="2.4" height="6" rx="1.2"/></svg>
+      <div class="mini-mid">
+        <div class="mini-t">正在直播</div>
+        <div class="mini-s">录音 03:24 · 2.1 MB</div>
+      </div>
+      <svg class="cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 14l6-6 6 6"/></svg>
+    </div>
+
+    <div class="tabbar mat">
+      <div class="tab on" id="tab0">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg>
+        <span>连接</span>
+      </div>
+      <div class="tab" id="tab1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
+        <span>设置</span>
+      </div>
+    </div>
+
+    <div class="hs" style="left: 26px; top: 690px;">6</div>
+    <div class="hs" style="left: 22px; top: 736px;">7</div>
+    <div class="hs" style="left: 310px; top: 736px;">8</div>
+  </div>
+
+  <aside class="annos">
+    <div class="anno">
+      <div class="top"><span class="no">1</span><h4>顶部光晕背景 bg_glow</h4><span class="chip f3">F3 新增</span></div>
+      <p>Connect 根 Stack 增加 <code>radialGradient(center 50% 12%, radius 80%)</code>：bg_glow → page_bg。新增 color token <code>bg_glow</code>：深色 <code>#151C2C</code> / 浅色 <code>#E8EEF7</code>。目的：纯色背景下半透明材质几乎不可见，光晕为系统材质提供背后内容，托显模糊折射质感。Live / VizPage 深色页不加渐变。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">2</span><h4>网络状态</h4><span class="chip f4">F4 新增</span></div>
+      <p>本机 IP 区新增网络类型胶囊（<code>netBearer</code>）+ 三态质量徽章（<code>netQuality</code>：优 / 中 / 弱，NetInfoService 按 bearer / RSSI / 队列水位 / 丢弃率评分）。质量持续弱 → 自动降级 48k→16k（复用 CONFIG 重配置帧，迟滞 + 30s 最短间隔，设置可关）；恢复优 → 自动升回。断网时（<code>netOnline=false</code>）顶部警示行 + 连接按钮禁用；恢复联网后自动重连（不清 8 次退避策略）。</p>
+      <div class="qual-prev">
+        <div class="t">三态质量徽章 · 主示「优」</div>
+        <div class="qrow3">
+          <span class="qbadge good"><i></i>优</span>
+          <span class="qbadge fair"><i></i>中</span>
+          <span class="qbadge weak"><i></i>弱</span>
+        </div>
+        <div class="weakline">弱态示例：网络 弱 · 已自动降级 16kHz · 队列 12</div>
+      </div>
+      <div class="offline-prev">
+        <div class="t">断网变体</div>
+        <div class="warnrow">网络不可用 · 请检查 WiFi 连接</div>
+        <div class="disbtn">连接（禁用）</div>
+      </div>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">3</span><h4>材质卡片</h4><span class="chip f3">F3</span></div>
+      <p>所有 <code>card_bg</code> 卡片最外层替换 <code>systemMaterial(ULTRA_THIN, interactive)</code>，移除纯色底；嵌套子元素不处理；文字前景色不动。浏览器以 blur(24px) + 半透明近似示意，真机为系统渲染的沉浸光感。端点 sheet 与 Toast 同族材质（sheet: ULTRA_THICK / Toast: THIN）。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">4</span><h4>ConfigSections 折叠动效</h4><span class="chip f2">F2</span></div>
+      <p>音源 / 音频参数 / 降噪三处折叠箭头旋转加 <code>.animation(curves.springMotion(0.4, 0.9))</code>；展开内容（if 条件渲染）加 OPACITY springMotion 过渡。现状为无动画硬切。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">5</span><h4>主按钮</h4><span class="chip keep">保持</span></div>
+      <p>96×96 圆形主按钮逻辑不变：idle = accent 蓝（连接 / 开始串流）、running = live_green 绿（进入直播 / 串流进行中，草图展示态）、starting / restarting 半透明禁用。位置从 ConnectCard 内保持不动。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">6</span><h4>mini 直播条</h4><span class="chip f1">F1 一镜到底</span><span class="chip f2">F2 弹簧</span></div>
+      <p><code>geometryTransition('liveCard', { follow: true })</code>：点击后与 Live 大卡做一镜到底几何转场（见 transition.html 循环演示）。出现 / 消失改 <code>springMotion(0.6, 0.85)</code> 弹簧上浮（现状硬切）。底部间距魔数 62 → <code>TAB_BAR_H + 8 + 6</code>。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">7</span><h4>悬浮页签栏</h4><span class="chip f3">F3</span></div>
+      <p><code>barOverlap(true)</code> + <code>barFloatingStyle({ barBottomMargin: 8, systemMaterial: Mat.bar })</code>，colorInvert 仅页签栏启用（文字资源已自适应，卡片不开防双重反色）。与现有自定义 tabBar Builder 共存性未证实 → 退化方案：移除 barFloatingStyle 恢复普通 Tabs，材质由卡片层体现。内容底部加 padding 防延伸到页签下。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">8</span><h4>设置页签 · 麦克风设备</h4><span class="chip f5">F5 新增</span></div>
+      <p>点击手机框底部「设置」页签查看：新增「麦克风设备」选择区块 —— <code>AudioSessionManager.getAvailableDevices(MEDIA_INPUT_DEVICES)</code> 列表 + <code>selectMediaInputDevice</code> 单选生效；设备切换经 <code>currentInputDeviceChanged</code> 更新 <code>inputDeviceName</code>；直播中插拔由 <code>deviceChange</code> 守护记录 statLog（不自动重启）。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">9</span><h4>输入增益快捷行</h4><span class="chip f6">F6 新增</span></div>
+      <p>降噪行下新增「输入增益」行：±24dB、0.5dB 步进、双击归零，LIMIT 开关启用 brickwall 限制器（默认开，仅超 -0.1dBFS 阈值介入）。系统无硬件增益 API → 软件增益位于 NR 后、发送前（管线 NR→EQ→Gain→Limiter）。本行为迷你快捷控件（滑杆无刻度与气泡），完整增益行（刻度 + 气泡）见 live.html。与 Live 增益行共享 <code>cfgGainDb</code> / <code>cfgLimiterOn</code>，调节后 Live 内嵌电平条与电平表（F8）实时反映。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">10</span><h4>参数均衡器入口</h4><span class="chip f7">F7 指引</span></div>
+      <p>Connect 配置卡不新增 EQ 行 —— 入口在 Live 配置 sheet 的「参数均衡器」折叠行（见 live.html / eq.html）：5 段参量（LowShelf 100Hz + Peaking 300Hz / 1kHz / 3kHz + HighShelf 8kHz）、G ±12dB、Q 0.5~4（Shelf 段置灰）、四预设、总旁通默认开（旁通 = bit 级直通），位于 NR 后 Gain 前。</p>
+    </div>
+    <div class="foot">
+      本页为 running 态（串流中）：主按钮绿色「进入直播」、mini 条可见。idle 态差异：主按钮 accent 蓝「连接 / 开始串流」、mini 条隐藏。<br>
+      演示配置 48kHz · 16bit · 单声道（弱网自动降级 48k→16k，见 anno2）；电平反馈见 live.html 内嵌电平条与 meter.html。端点 sheet（编辑目标端点）材质与 live.html 配置 sheet 同族，此处不重复展示。
+    </div>
+  </aside>
+</div>
+<script>
+(function () {
+  var btn = document.getElementById('themeBtn');
+  btn.addEventListener('click', function () {
+    document.body.classList.toggle('lt');
+    btn.textContent = document.body.classList.contains('lt') ? '切换到深色主题' : '切换到浅色主题';
+  });
+  var tab0 = document.getElementById('tab0');
+  var tab1 = document.getElementById('tab1');
+  var pg0 = document.getElementById('pgConnect');
+  var pg1 = document.getElementById('pgSettings');
+  function pick(idx) {
+    var onSettings = idx === 1;
+    tab0.classList.toggle('on', idx === 0);
+    tab1.classList.toggle('on', idx === 1);
+    pg0.style.display = onSettings ? 'none' : '';
+    pg1.style.display = onSettings ? '' : 'none';
+    document.body.classList.toggle('on-settings', onSettings);
+  }
+  tab0.addEventListener('click', function () { pick(0); });
+  tab1.addEventListener('click', function () { pick(1); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarmonyMic · 现代化 + 专业音频扩展 · 设计审核入口</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 26px; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f0 { background: #FF2D55; }
+.chip.f1 { background: #007AFF; }
+.chip.f2 { background: #AF52DE; }
+.chip.f3 { background: #34C759; }
+.chip.f4 { background: #FF9500; }
+.chip.f5 { background: #FF2D55; }
+.chip.f6 { background: #32ADE6; }
+.chip.f7 { background: #5856D6; }
+.chip.f8 { background: #00C7BE; }
+.chip.f9 { background: #A2845E; }
+.chip.f10 { background: #8E8E93; }
+.chip.f11 { background: #8E8E93; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.hero { padding: 44px 0 8px; }
+.hero h1 { font-size: 30px; letter-spacing: -0.5px; }
+.hero p { margin-top: 12px; font-size: 14px; line-height: 1.9; color: #3d4653; max-width: 880px; }
+.stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 22px; }
+.stat { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 14px 20px; min-width: 150px; }
+.stat .n { font-size: 24px; font-weight: 800; color: #007AFF; }
+.stat .l { font-size: 12px; color: #68727f; margin-top: 3px; }
+.section { margin-top: 44px; }
+.section > h2 { font-size: 18px; margin-bottom: 6px; }
+.section > .desc { font-size: 12.5px; color: #68727f; margin-bottom: 18px; line-height: 1.8; }
+.guide { background: #fff; border: 1px solid #e2e7ee; border-radius: 16px; padding: 22px 24px; }
+.guide ol { margin: 10px 0 0 22px; }
+.guide li { font-size: 13.5px; line-height: 2.1; color: #2b3340; }
+.guide .warn { margin-top: 14px; background: #fff7ed; border: 1px solid #ffdcb0; color: #9a5b13; font-size: 12.5px; line-height: 1.8; border-radius: 10px; padding: 10px 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+.card { position: relative; display: flex; gap: 16px; background: #fff; border: 1px solid #e2e7ee; border-radius: 16px; padding: 18px; transition: box-shadow .2s, transform .2s; }
+.card:hover { box-shadow: 0 10px 30px rgba(20,40,80,.12); transform: translateY(-2px); }
+.thumb { width: 86px; height: 150px; border-radius: 16px; flex-shrink: 0; position: relative; overflow: hidden; border: 4px solid #14181f; }
+.card .info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card h3 { font-size: 15px; }
+.card .file { font-size: 11.5px; color: #007AFF; font-family: Consolas, monospace; }
+.card p { font-size: 12px; color: #5b6472; line-height: 1.75; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+.t-connect { background: linear-gradient(#1b2333, #121212); }
+.t-connect .a { position: absolute; left: 12%; right: 12%; top: 14%; height: 13%; border-radius: 5px; background: rgba(255,255,255,.16); }
+.t-connect .b { position: absolute; left: 12%; right: 12%; top: 31%; height: 20%; border-radius: 5px; background: rgba(255,255,255,.11); }
+.t-connect .c { position: absolute; left: 32%; right: 32%; top: 55%; height: 20%; border-radius: 50%; background: #34C759; }
+.t-connect .d { position: absolute; left: 12%; right: 12%; bottom: 12%; height: 8%; border-radius: 6px; background: rgba(255,255,255,.2); }
+.t-live { background: #121212; }
+.t-live .a { position: absolute; left: 10%; right: 10%; top: 10%; height: 38%; border-radius: 6px; background: linear-gradient(160deg, #1f3a5f, #16202e); border: 1px solid rgba(255,255,255,.14); }
+.t-live .b { position: absolute; left: 38%; right: 38%; top: 60%; height: 18%; border-radius: 50%; background: #FF6A6A; }
+.t-viz { background: #0A0A0E; }
+.t-viz .a { position: absolute; left: 14%; right: 14%; top: 30%; width: 72%; height: 30%; display: flex; align-items: flex-end; gap: 3px; }
+.t-viz .a i { flex: 1; background: linear-gradient(#64D2FF, #0A84FF); border-radius: 1px; }
+.t-meter { background: #0A0A0E; }
+.t-meter .a { position: absolute; left: 10%; right: 10%; top: 30%; height: 13%; border-radius: 4px; background: linear-gradient(90deg, #30D158 52%, #FFD60A 74%, #FF453A 92%); opacity: .9; }
+.t-meter .b { position: absolute; left: 10%; right: 10%; top: 50%; height: 13%; border-radius: 4px; background: linear-gradient(90deg, #30D158 38%, #FFD60A 60%, #FF453A 84%); opacity: .6; }
+.t-meter .c { position: absolute; right: 10%; top: 26%; width: 8px; height: 8px; border-radius: 4px; background: #FF453A; }
+.t-eq { background: #14141C; }
+.t-eq .a { position: absolute; left: 12%; right: 12%; top: 16%; bottom: 28%; display: flex; gap: 7px; align-items: flex-end; }
+.t-eq .a i { flex: 1; border-radius: 3px; background: linear-gradient(#7A76E8, #2E2C6E); }
+.t-eq .b { position: absolute; left: 12%; right: 12%; bottom: 12%; height: 10%; border-radius: 5px; background: rgba(255,255,255,.18); }
+.t-bg { background: linear-gradient(#1C2431, #0E131C); }
+.t-bg .a { position: absolute; left: 12%; right: 12%; top: 15%; height: 30%; border-radius: 8px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); }
+.t-bg .b { position: absolute; left: 50%; top: 55%; width: 34px; height: 34px; margin-left: -17px; border-radius: 17px; background: #A2845E; }
+.t-bg .c { position: absolute; left: 12%; right: 12%; top: 72%; height: 6px; border-radius: 3px; background: rgba(255,255,255,.14); }
+.t-bg .d { position: absolute; left: 12%; width: 38%; top: 72%; height: 6px; border-radius: 3px; background: rgba(255,255,255,.85); }
+.t-welcome { background: #121212; }
+.t-welcome .a { position: absolute; left: 50%; top: 22%; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; border: 1.5px solid #007AFF; opacity: .8; }
+.t-welcome .b { position: absolute; left: 26%; right: 26%; bottom: 22%; height: 9%; border-radius: 5px; background: #007AFF; }
+.t-trans { background: #121212; }
+.t-trans .a { position: absolute; left: 12%; right: 12%; bottom: 14%; height: 9%; border-radius: 5px; background: rgba(255,255,255,.2); }
+.t-trans .b { position: absolute; left: 12%; right: 12%; top: 14%; height: 34%; border-radius: 6px; background: linear-gradient(160deg, #1f3a5f, #16202e); border: 1px solid rgba(255,255,255,.14); opacity: .45; }
+.t-arch { background: #fff; }
+.t-arch .a { position: absolute; left: 12%; right: 12%; top: 12%; height: 10%; border-radius: 4px; background: #dbe6f5; border: 1px solid #b9cde8; }
+.t-arch .b { position: absolute; left: 12%; right: 12%; top: 30%; height: 10%; border-radius: 4px; background: #dbe6f5; border: 1px solid #b9cde8; }
+.t-arch .c { position: absolute; left: 12%; width: 30%; top: 50%; height: 32%; border-radius: 4px; background: #e8f5e9; border: 1px solid #b7dcb9; }
+.t-arch .d { position: absolute; right: 12%; width: 30%; top: 50%; height: 32%; border-radius: 4px; background: #fff0e6; border: 1px solid #ffd3b0; }
+.timeline { background: #fff; border: 1px solid #e2e7ee; border-radius: 16px; padding: 24px; }
+.tl-item { display: flex; gap: 18px; position: relative; padding: 0 0 26px 0; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-item::before { content: ''; position: absolute; left: 63px; top: 30px; bottom: 0; width: 2px; background: #e3e8ef; }
+.tl-item:last-child::before { display: none; }
+.tl-badge { width: 52px; height: 28px; border-radius: 14px; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.tl-body h3 { font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tl-body p { font-size: 12.5px; color: #5b6472; margin-top: 4px; line-height: 1.75; }
+.tl-gate { outline: 2px dashed #FF2D55; outline-offset: 8px; border-radius: 12px; }
+.tl-item.dash { opacity: .8; }
+.tl-item.dash .tl-badge { background: #f0f2f5; color: #68727f; border: 1.5px dashed #b9c2ce; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.legend .item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #3d4653; background: #fff; border: 1px solid #e2e7ee; border-radius: 10px; padding: 5px 12px; }
+.dot { width: 10px; height: 10px; border-radius: 5px; }
+footer { margin-top: 54px; padding-top: 20px; border-top: 1px solid #dde3ea; font-size: 12px; color: #7b8494; line-height: 2; }
+footer code { background: #e9edf3; border-radius: 5px; padding: 1px 7px; font-size: 11.5px; color: #3d4653; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <span class="t">HarmonyMic · 现代化 + 专业音频扩展 · 设计审核</span>
+  <span class="sub">F0 第二轮草图 · 审核门</span>
+  <span class="spacer"></span>
+  <span class="chip f6">F6</span>
+  <span class="chip f7">F7</span>
+  <span class="chip f8">F8</span>
+  <span class="chip f9">F9</span>
+  <span class="chip f0">F0 待审核 · 定稿前不动代码</span>
+</header>
+<div class="wrap">
+  <section class="hero">
+    <h1>HarmonyMic 现代化 + 专业音频扩展 · 设计草图与架构图</h1>
+    <p>本目录是 F0 审核第二轮（专业音频扩展）的<strong>视觉与架构审核包</strong>：在已批准的现代化内容（router 退役一镜到底、API 26 沉浸光感材质、springMotion 动效、displaySync 帧同步、麦克风设备选择）之上，新增<strong>专业音频扩展</strong>：输入增益 + 限幅、5 段参量 EQ、PRE / POST 专业电平表、网络质量三态与弱网自动降级、后台锁屏 AVSession 控制、来电打断自动恢复。全部草图基于<strong>项目真实 UI 结构与真实色板</strong>绘制（360×780 手机框），标注序号对应右侧说明卡。</p>
+    <div class="stats">
+      <div class="stat"><div class="n">11</div><div class="l">实施阶段（F1~F11）</div></div>
+      <div class="stat"><div class="n">9</div><div class="l">页面草图（+1 入口）</div></div>
+      <div class="stat"><div class="n">13</div><div class="l">新增 AppStorage key</div></div>
+      <div class="stat"><div class="n">32</div><div class="l">存量 key 契约不变</div></div>
+      <div class="stat"><div class="n">11</div><div class="l">F11 真机走查项</div></div>
+    </div>
+  </section>
+<section class="section">
+  <h2>审核方式</h2>
+  <p class="desc">浏览器直接打开各 HTML 文件（无需服务器、无外部依赖），逐页对照标注审核。</p>
+  <div class="guide">
+    <ol>
+      <li>按下方卡片顺序打开 <strong>9 份页面草图</strong>（建议先看 connect.html 与 arch.html 建立全局，再看 transition.html 转场演示与三张新增专项页 meter / eq / background）</li>
+      <li>每个手机框旁的<strong>编号标注卡</strong>说明该元素的来源阶段（F1~F9 / 保持 / 后续）与关键 API</li>
+      <li>connect.html 右上角可<strong>切换明暗主题</strong>；底部页签可点开「设置」查看直播与后台三开关（F9）与麦克风设备（F5）</li>
+      <li>反馈格式建议：<code>文件名 + 标注序号 + 意见</code>，例如「eq.html ③ 预设按钮改胶囊」「meter.html ⑧ 刻度补 -45dB」</li>
+      <li>草图迭代定稿后才开始 P0~F11 实施；定稿前不改任何代码</li>
+    </ol>
+    <div class="warn">材质近似声明：API 26 ImmersiveMaterial 的系统渲染光感（折射 / 高光随内容变化）无法在浏览器复现，草图以 backdrop-filter 模糊 + 半透明底近似示意，最终观感以真机为准。</div>
+  </div>
+</section>
+<section class="section">
+  <h2>草图文件</h2>
+  <p class="desc">点击卡片打开对应文件（与本页同目录）；前 4 张为全局页，中间 3 张为本轮新增专项页。</p>
+  <div class="cards">
+    <a class="card" href="arch.html">
+      <div class="thumb t-arch"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+      <div class="info">
+        <h3>架构图 × 4</h3>
+        <span class="file">arch.html</span>
+        <p>应用结构树（cover 层级）、模块依赖图（新建 5 文件）、音频管线（NR→EQ→Gain→Limiter · feedPre / feedPost 抽头）、数据流（32 存量 + 13 新 key · 质量流 · 后台流）。</p>
+        <div class="chips"><span class="chip f1">F1</span><span class="chip f4">F4</span><span class="chip f6">F6</span><span class="chip f7">F7</span><span class="chip f8">F8</span><span class="chip f9">F9</span></div>
+      </div>
+    </a>
+    <a class="card" href="connect.html">
+      <div class="thumb t-connect"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+      <div class="info">
+        <h3>Connect 连接页</h3>
+        <span class="file">connect.html</span>
+        <p>唯一 @Entry 根页：材质卡片、悬浮页签、网络三态质量徽章（F4）、输入增益行（F6）、EQ 入口（F7）、48kHz 演示配置；明暗主题可切换，含设置页签。</p>
+        <div class="chips"><span class="chip f1">F1</span><span class="chip f2">F2</span><span class="chip f3">F3</span><span class="chip f4">F4</span><span class="chip f6">F6</span><span class="chip f7">F7</span></div>
+      </div>
+    </a>
+    <a class="card" href="live.html">
+      <div class="thumb t-live"><i class="a"></i><i class="b"></i></div>
+      <div class="info">
+        <h3>Live 直播页（全屏 cover）</h3>
+        <span class="file">live.html</span>
+        <p>bindContentCover 模态；VizCard 一镜到底 anchor 端 + 内嵌电平条（F8）；左：完整界面（增益行 / 质量 chip），右：配置 sheet 材质半开态。</p>
+        <div class="chips"><span class="chip f1">F1</span><span class="chip f3">F3</span><span class="chip f6">F6</span><span class="chip f7">F7</span><span class="chip f8">F8</span></div>
+      </div>
+    </a>
+    <a class="card" href="viz.html">
+      <div class="thumb t-viz"><div class="a"><i style="height:30%"></i><i style="height:55%"></i><i style="height:80%"></i><i style="height:45%"></i><i style="height:65%"></i><i style="height:35%"></i><i style="height:70%"></i><i style="height:50%"></i></div></div>
+      <div class="info">
+        <h3>VizPage 可视化页（二级 cover）</h3>
+        <span class="file">viz.html</span>
+        <p>Live cover 内二级 bindContentCover；displaySync 帧同步渲染；分段条 pill「音量」→「电平表」；电平表全屏视图（F8）。</p>
+        <div class="chips"><span class="chip f1">F1</span><span class="chip f5">F5</span><span class="chip f8">F8</span></div>
+      </div>
+    </a>
+    <a class="card" href="meter.html">
+      <div class="thumb t-meter"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+      <div class="info">
+        <h3>专业电平表（新增）</h3>
+        <span class="file">meter.html</span>
+        <p>PRE / POST 双通道 RMS / Peak / TP（4× 超采样）竖表，-60~0 dBFS 刻度、削波 LED、峰值闩锁与重置；LUFS 接口预留。</p>
+        <div class="chips"><span class="chip f8">F8</span><span class="chip f5">F5</span><span class="chip keep">保持</span></div>
+      </div>
+    </a>
+    <a class="card" href="eq.html">
+      <div class="thumb t-eq"><div class="a"><i style="height:45%"></i><i style="height:70%"></i><i style="height:100%"></i><i style="height:60%"></i><i style="height:35%"></i></div><i class="b"></i></div>
+      <div class="info">
+        <h3>参数均衡器（新增）</h3>
+        <span class="file">eq.html</span>
+        <p>ConfigSheet 内 5 段参量 EQ 折叠面板：响应曲线预览、F / G / Q 控件、预设（人声增强 / 平直 / 低切）、旁通开关；默认旁通 = bit 级直通。</p>
+        <div class="chips"><span class="chip f7">F7</span><span class="chip f2">F2</span></div>
+      </div>
+    </a>
+    <a class="card" href="background.html">
+      <div class="thumb t-bg"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+      <div class="info">
+        <h3>后台与锁屏（新增）</h3>
+        <span class="file">background.html</span>
+        <p>长时任务 + AVSession 锁屏卡片：播放 / 暂停 = 静音切换、停止 = 断开；来电打断自动恢复（默认开）；设置页直播与后台三开关。</p>
+        <div class="chips"><span class="chip f9">F9</span><span class="chip f4">F4</span></div>
+      </div>
+    </a>
+    <a class="card" href="welcome.html">
+      <div class="thumb t-welcome"><i class="a"></i><i class="b"></i></div>
+      <div class="info">
+        <h3>Welcome 欢迎覆盖层</h3>
+        <span class="file">welcome.html</span>
+        <p>首启欢迎从独立 router 页改为 Connect 内条件覆盖层，底层 Tabs 直接就绪。</p>
+        <div class="chips"><span class="chip f1">F1</span></div>
+      </div>
+    </a>
+    <a class="card" href="transition.html">
+      <div class="thumb t-trans"><i class="a"></i><i class="b"></i></div>
+      <div class="info">
+        <h3>一镜到底转场演示</h3>
+        <span class="file">transition.html</span>
+        <p>mini 条 → Live 大卡 geometryTransition 自动循环动画；现状硬切 vs 新方案并排对比。</p>
+        <div class="chips"><span class="chip f1">F1</span><span class="chip f2">F2</span></div>
+      </div>
+    </a>
+  </div>
+</section>
+  <section class="section">
+    <h2>实施路线图</h2>
+    <p class="desc">草图定稿（F0 审核门通过）后按序执行；每阶段独立 arkts_check + devecocli build + commit，可单独回退；F8 依赖 F5（同一 Canvas / displaySync 管线）。</p>
+    <div class="timeline">
+<div class="tl-item tl-gate">
+        <div class="tl-badge" style="background:#FF2D55">F0</div>
+        <div class="tl-body">
+          <h3>设计草图与架构图 <span class="chip f0">当前 · 审核门</span></h3>
+          <p>10 份 HTML 草图呈报审核、迭代定稿；<strong>定稿前不改任何代码</strong>。定稿后 commit「F0 design」进入 P0。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#8E8E93">P0</div>
+        <div class="tl-body">
+          <h3>基线检查点</h3>
+          <p>git 检查点 commit、记录回退锚点 hash、基线 devecocli build 确认（基线警告不新增）。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#007AFF">F1</div>
+        <div class="tl-body">
+          <h3>一镜到底 <span class="chip f1">架构</span></h3>
+          <p>Live 改 bindContentCover（modalTransition NONE + geometryTransition('liveCard') follow / anchor 对 + animateTo 350ms Curve.Friction）；chevron / 侧滑 = 收起 cover 串流继续；Welcome 改条件覆盖层；VizPage 改二级 cover（退化：vizCoverOpen 提升为 Connect 二级 cover）。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#AF52DE">F2</div>
+        <div class="tl-body">
+          <h3>配置 sheet <span class="chip f2">动效</span></h3>
+          <p>bindSheet systemMaterial ULTRA_THICK；ConfigSections 折叠行（音源 / 音频参数 / 降噪 + EQ 槽位预留）；curves.springMotion 折叠与上浮动效。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#34C759">F3</div>
+        <div class="tl-body">
+          <h3>Connect 焕新 <span class="chip f3">材质</span></h3>
+          <p>module.json5 加 UIMaterial metadata；新建 Materials.ets / UiEnvService.ets；卡片 uiMaterial（style / interactive / lightEffect）；bg_glow 径向渐变；悬浮页签 barFloatingStyle（退化 = 移除）；EndpointSheet 材质。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#FF9500">F4</div>
+        <div class="tl-body">
+          <h3>网络质量 <span class="chip f4">三态 + 自动降级</span></h3>
+          <p>NetInfoService 评分（bearer / RSSI / 队列水位 / 丢弃率 / 重连计数 → good / fair / weak）+ startWatch / stopWatch；netOnline / netBearer / netQuality key；Connect 三态徽章 + Live 质量 chip；弱网自动降级（CONFIG 帧 48k→16k · 迟滞 + 30s 最短间隔 · 仅采样率维度 · 可关 · 恢复升回）。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#FF2D55">F5</div>
+        <div class="tl-body">
+          <h3>帧同步 + 设备 <span class="chip f5">渲染与音频</span></h3>
+          <p>VizCanvas / VizView 驱动 setInterval 33ms → displaySync 帧同步（expected 60 / min 30 / max 120 · start / stop 成对 · tickCount 节流保留）；AudioSessionManager 设备族 API + 设置页麦克风设备行 + deviceChange 守护 + inputDeviceName key。</p>
+        </div>
+      </div>
+<div class="tl-item">
+        <div class="tl-badge" style="background:#32ADE6">F6</div>
+        <div class="tl-body">
+          <h3>管线 + 增益 <span class="chip f6">±24dB · 限幅</span></h3>
+          <p>common 新建 AudioPipeline.ets（IAudioStage / GainStage / LimiterStage / BiquadFilter）；StreamService.handleAudioData 重排 NR→EQ→Gain→Limiter→enqueue（静音路径不进管线）；cfgGainDb / cfgLimiterOn key；Connect + Live 增益行 UI；meter_amber 等资源。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#5856D6">F7</div>
+        <div class="tl-body">
+          <h3>参量 EQ <span class="chip f7">5 段 biquad</span></h3>
+          <p>common 新建 EqStage.ets（5 段 biquad RBJ · F / G / Q · 旁通 · 预设常量）；cfgEqBypass / cfgEqBands / cfgEqPreset key + preferences 持久化；ConfigSections EQ 折叠面板（曲线预览 + 5 段控件 + 预设 + 旁通）。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#00C7BE">F8</div>
+        <div class="tl-body">
+          <h3>电平表 <span class="chip f8">RMS / Peak / TP 4×</span></h3>
+          <p>AudioVizManager 扩展（truePeak 4× · latchedPeak + 重置 · clipLatch + 重置 · MeterMode 预留 LUFS · feedPost 移管线末级）；VizRenderer / VizCanvas 电平表绘制模式；VIZ_PILL_NAMES「音量」→「电平表」；Live VizCard 内嵌表条 + 削波 LED + 重置。依赖 F5（同一 Canvas / displaySync 管线）。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#A2845E">F9</div>
+        <div class="tl-body">
+          <h3>后台锁屏 <span class="chip f9">AVSession</span></h3>
+          <p>entry 新建 AvSessionService.ets（createAVSession 'audio' · setAVMetadata（HarmonyMic 直播中 · 端点）· play / pause = 静音切换 · stop = 断开 · 与串流生命周期成对）；KeepScreenOn → 设置开关（默认关）；来电打断自动恢复（audioInterrupt END + cfgAutoRecover 默认开 · 失败 toast 兜底）；设置页三开关行。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#8E8E93">F10</div>
+        <div class="tl-body">
+          <h3>打磨 <span class="chip f10">收尾前</span></h3>
+          <p>状态栏浅字与 Live 同步、colorInvert 页签栏、dark 色板补齐、toast systemMaterial。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-badge" style="background:#8E8E93">F11</div>
+        <div class="tl-body">
+          <h3>全量走查与留痕 <span class="chip f11">收尾</span></h3>
+          <p>真机走查扩展清单 11 项（转场 / 材质 / 锁屏控制 / 来电恢复 / 弱网降级 / 电平表校准 / EQ 听感 / 增益限幅 / 峰值重置 / 后台 30 分钟稳定性 / 横竖屏）+ MEMORY.md 变动记录。</p>
+        </div>
+      </div>
+      <div class="tl-item dash">
+        <div class="tl-badge">Opus</div>
+        <div class="tl-body">
+          <h3>Opus 压缩串流 <span class="chip next">后续</span></h3>
+          <p>FRAME_TYPE 预留 3 · OpusStage 即插即用（IAudioStage 抽象已落地）· 需 PC 端配合。</p>
+        </div>
+      </div>
+      <div class="tl-item dash">
+        <div class="tl-badge">LUFS</div>
+        <div class="tl-body">
+          <h3>LUFS 响度计量 <span class="chip next">后续</span></h3>
+          <p>AudioVizManager MeterMode 已预留接口 · 电平表视图切换。</p>
+        </div>
+      </div>
+      <div class="tl-item dash">
+        <div class="tl-badge">NR2</div>
+        <div class="tl-body">
+          <h3>新降噪 Stage（NrStageV2） <span class="chip next">后续</span></h3>
+          <p>替换 DF3 时 = 新 IAudioStage 实现，管线其余环节不动。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+<section class="section">
+  <h2>标注图例</h2>
+  <div class="legend">
+    <div class="item"><span class="dot" style="background:#007AFF"></span>F1 一镜到底</div>
+    <div class="item"><span class="dot" style="background:#AF52DE"></span>F2 配置 sheet</div>
+    <div class="item"><span class="dot" style="background:#34C759"></span>F3 Connect 焕新</div>
+    <div class="item"><span class="dot" style="background:#FF9500"></span>F4 网络质量</div>
+    <div class="item"><span class="dot" style="background:#FF2D55"></span>F5 帧同步 + 设备</div>
+    <div class="item"><span class="dot" style="background:#32ADE6"></span>F6 管线 + 增益</div>
+    <div class="item"><span class="dot" style="background:#5856D6"></span>F7 参量 EQ</div>
+    <div class="item"><span class="dot" style="background:#00C7BE"></span>F8 电平表</div>
+    <div class="item"><span class="dot" style="background:#A2845E"></span>F9 后台锁屏</div>
+    <div class="item"><span class="dot" style="background:#8E8E93"></span>F10 打磨 / 保持</div>
+    <div class="item"><span class="dot" style="background:#C7C7CC"></span>后续（Opus / LUFS / 新降噪）</div>
+  </div>
+</section>
+<footer>
+    草图目录 <code>docs/design-review/</code><br>
+    实施计划 <code>.deveco/plans/1791385217360-nimble-lagoon.md</code>（name: harmonymic-pro-audio-expansion）<br>
+    行为语义基线：chevron / 系统侧滑退出 Live = 仅收起 cover（串流继续）；断开按钮 = stop + 收起 · 锁屏播放 / 暂停 = 静音切换 · 锁屏停止 = 断开 · 2026-10-14
+  </footer>
+</div>
+</body>
+</html>

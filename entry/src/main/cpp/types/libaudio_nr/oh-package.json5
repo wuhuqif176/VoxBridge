@@ -1,0 +1,6 @@
+{
+  "name": "libaudio_nr.so",
+  "types": "./index.d.ts",
+  "version": "1.0.0",
+  "description": "DeepFilterNet3 noise reduction native module"
+}

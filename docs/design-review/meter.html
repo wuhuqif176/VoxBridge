@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电平表 · 设计草图 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f1 { background: #007AFF; }
+.chip.f5 { background: #FF2D55; }
+.chip.f8 { background: #00C7BE; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.stage { display: flex; gap: 42px; justify-content: center; align-items: flex-start; padding: 34px 24px; flex-wrap: wrap; }
+.phone { width: 360px; height: 780px; border-radius: 36px; border: 10px solid #10141a; background: #121212; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 30px 80px rgba(15,25,45,.45), inset 0 0 0 2px #2a313c; }
+.phone.vizp { background: #0A0A0E; }
+.ph-label { text-align: center; font-size: 12.5px; color: #5b6472; margin-top: 14px; font-weight: 600; }
+.statusbar { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: #E6E6E6; font-size: 12px; font-weight: 600; }
+.statusbar .sic { display: flex; align-items: center; gap: 5px; }
+.sig { display: flex; align-items: flex-end; gap: 1.5px; }
+.sig i { width: 3px; background: #E6E6E6; border-radius: 1px; display: block; }
+.bat { width: 20px; height: 10px; border: 1.4px solid #E6E6E6; border-radius: 3px; position: relative; opacity: .9; }
+.bat::after { content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 60%; background: #E6E6E6; border-radius: 1px; }
+.topbar { display: flex; align-items: center; height: 56px; padding: 0 16px 0 8px; position: relative; }
+.topbar .chev { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.6); }
+.topbar .chev svg { width: 26px; height: 26px; }
+.topbar .tt { font-size: 20px; font-weight: 700; color: #fff; margin-left: 4px; }
+.topbar .host { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.6); max-width: 150px; white-space: nowrap; overflow: hidden; }
+.gainrow { display: flex; align-items: center; gap: 10px; height: 50px; margin: 2px 20px 0; }
+.gmic { width: 20px; height: 20px; color: rgba(255,255,255,.85); flex-shrink: 0; }
+.gslider { flex: 1; position: relative; height: 50px; }
+.gtrack { position: absolute; left: 0; right: 0; top: 30px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); }
+.gfill { position: absolute; top: 30px; height: 4px; border-radius: 2px; background: #0A84FF; left: 50%; width: 6.25%; }
+.gthumb { position: absolute; top: 24px; left: 56.25%; width: 16px; height: 16px; margin-left: -8px; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.gbubble { position: absolute; top: 0; left: 56.25%; transform: translateX(-50%); font-size: 9.5px; font-weight: 700; color: #fff; background: #1C1C1E; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; padding: 2px 8px; white-space: nowrap; }
+.gscale { position: absolute; left: 0; right: 0; top: 42px; height: 10px; }
+.gscale i { position: absolute; transform: translateX(-50%); font-size: 7.5px; font-style: normal; color: rgba(255,255,255,.35); }
+.gscale i:first-child { transform: none; }
+.gscale i:last-child { transform: translateX(-100%); }
+.glimit { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.glimit span { font-size: 9px; font-weight: 700; letter-spacing: .5px; color: rgba(255,255,255,.5); }
+.gsw { width: 34px; height: 20px; border-radius: 10px; background: rgba(255,255,255,.18); position: relative; flex-shrink: 0; }
+.gsw.on { background: #34C759; }
+.gsw i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; }
+.gsw.on i { left: 16px; }
+.vizcard { margin: 4px 20px 0; height: 320px; border-radius: 15px; position: relative; overflow: hidden;
+  background: rgba(255,255,255,.045); backdrop-filter: blur(24px) saturate(130%); -webkit-backdrop-filter: blur(24px) saturate(130%); border: 1px solid rgba(255,255,255,.09); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.vizcard .glowline { position: absolute; inset: 0; background: radial-gradient(70% 45% at 50% 78%, rgba(10,132,255,.20) 0%, rgba(0,0,0,0) 70%); }
+.eq { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 7px; height: 150px; }
+.eq i { width: 12px; border-radius: 6px; background: linear-gradient(180deg, #64D2FF, #0A84FF); animation: eq 1.05s ease-in-out infinite alternate; box-shadow: 0 0 14px rgba(20,150,255,.35); }
+@keyframes eq { from { height: 14%; } to { height: 96%; } }
+.expand { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 22px; background: rgba(0,0,0,.4); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; }
+.expand svg { width: 22px; height: 22px; }
+.clipled { position: absolute; top: 14px; right: 66px; height: 16px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,106,106,.4); color: rgba(255,106,106,.55); font-size: 8px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; }
+.mstrip { position: absolute; left: 12px; right: 12px; bottom: 10px; }
+.mbar { position: relative; }
+.mtrack { position: relative; height: 100%; border-radius: 5px; overflow: hidden;
+  background: linear-gradient(90deg, #34C759 0%, #34C759 66.7%, #FFB800 66.7%, #FFB800 90%, #FF6A6A 90%, #FF6A6A 100%); }
+.mtrack.pre { background: #55555F; }
+.mcover { position: absolute; top: 0; bottom: 0; background: rgba(12,12,16,.82); }
+.mhold { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 4px rgba(255,255,255,.55); }
+.mhold.dim { background: rgba(255,255,255,.45); box-shadow: none; }
+.mtp { position: absolute; top: -4px; bottom: -4px; width: 2.5px; background: #64D2FF; box-shadow: 0 0 5px rgba(100,210,255,.6); }
+.mscale { position: relative; }
+.mscale i { position: absolute; transform: translateX(-50%); font-style: normal; white-space: nowrap; }
+.mscale i:first-child { transform: none; }
+.mscale i:last-child { transform: translateX(-100%); }
+.mstrip .mbar { height: 10px; }
+.mstrip .mscale { height: 12px; margin-top: 3px; }
+.mstrip .mscale i { font-size: 7.5px; color: rgba(255,255,255,.38); }
+.statusblk { margin-top: 22px; text-align: center; position: relative; }
+.liverow { display: inline-flex; align-items: center; gap: 6px; height: 20px; }
+.livedot { width: 8px; height: 8px; border-radius: 4px; background: #34C759; animation: pulse 1.6s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52,199,89,.55); } 70% { box-shadow: 0 0 0 7px rgba(52,199,89,0); } 100% { box-shadow: 0 0 0 0 rgba(52,199,89,0); } }
+.liverow b { font-size: 12px; font-weight: 800; color: #34C759; letter-spacing: .5px; }
+.rectime { font-size: 16px; font-weight: 600; color: #fff; margin-top: 8px; }
+.connline { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 5px; }
+.bytesline { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 3px; }
+.qrow { margin-top: 8px; }
+.qchip { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 10px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.qchip i { width: 6px; height: 6px; border-radius: 3px; }
+.qchip.good { color: #34C759; background: rgba(52,199,89,.14); }
+.qchip.good i { background: #34C759; }
+.ctrlrow { position: absolute; left: 0; right: 0; bottom: 46px; display: flex; justify-content: space-between; align-items: center; width: 76%; margin: 0 auto; }
+.ctrlic { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: #fff; }
+.ctrlic svg { width: 26px; height: 26px; }
+.endbtn { width: 64px; height: 64px; border-radius: 32px; background: #FF6A6A; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 22px rgba(255,106,106,.35); }
+.endbtn svg { width: 26px; height: 26px; }
+.vtopbar { display: flex; align-items: center; padding: 6px 12px 0 4px; height: 52px; }
+.back { font-size: 26px; color: #E6E6E6; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.pill-mute { font-size: 11px; font-weight: 600; color: #8A8A95; height: 26px; padding: 0 12px; border-radius: 13px; background: #1C1C22; display: flex; align-items: center; margin-left: auto; }
+.pill-live { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 14px 0 10px; border-radius: 13px; background: rgba(46,52,199,.35); margin-left: 8px; }
+.pill-live .dot { width: 8px; height: 8px; border-radius: 4px; background: #FF6A6A; animation: pulse2 1.4s ease-out infinite; }
+@keyframes pulse2 { 0% { box-shadow: 0 0 0 0 rgba(255,106,106,.6); } 70% { box-shadow: 0 0 0 7px rgba(255,106,106,0); } 100% { box-shadow: 0 0 0 0 rgba(255,106,106,0); } }
+.pill-live b { font-size: 11px; font-weight: 800; color: #FF6A6A; letter-spacing: .5px; }
+.canvaszone { margin: 12px 20px 0; height: 200px; position: relative; }
+.vzmeter { padding-top: 26px; }
+.vzmeter .mrow { display: flex; align-items: center; gap: 10px; }
+.vzmeter .mrow + .mrow { margin-top: 22px; }
+.mlabel { width: 64px; font-size: 11px; color: #8A8A95; flex-shrink: 0; line-height: 1.35; }
+.mlabel b { color: #E6E6E6; font-weight: 600; }
+.vzmeter .mbar { flex: 1; height: 28px; }
+.vzmeter .mtrack { border-radius: 14px; }
+.vzmeter .mscale { height: 14px; margin: 8px 0 0 74px; }
+.vzmeter .mscale i { font-size: 9.5px; color: #8A8A95; }
+.mlegend { margin-top: 12px; text-align: center; font-size: 10px; color: #8A8A95; }
+.lg { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin: 0 4px -1px 12px; vertical-align: middle; }
+.lg:first-child { margin-left: 0; }
+.lg.f { background: linear-gradient(90deg, #34C759, #FFB800); }
+.lg.h { background: #fff; width: 2.5px; border-radius: 1px; }
+.lg.t { background: #64D2FF; width: 2.5px; border-radius: 1px; }
+.readout { text-align: center; margin-top: 30px; }
+.rmsrow { display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
+.rms { font-size: 38px; font-weight: 800; color: #E6E6E6; letter-spacing: -1px; }
+.rmsu { font-size: 12px; color: #8A8A95; margin-bottom: 6px; }
+.mactions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; }
+.mbtn { height: 30px; padding: 0 16px; border-radius: 15px; background: #1C1C22; color: #E6E6E6; font-size: 12px; display: flex; align-items: center; }
+.mled { height: 24px; padding: 0 10px; border-radius: 12px; border: 1px solid rgba(255,106,106,.35); color: rgba(255,106,106,.6); font-size: 9px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; }
+.mled.lit { background: #FF6A6A; border-color: #FF6A6A; color: #fff; box-shadow: 0 0 10px rgba(255,106,106,.6); }
+.mlufs { height: 24px; padding: 0 10px; border-radius: 12px; border: 1px dashed rgba(199,199,204,.4); color: rgba(199,199,204,.55); font-size: 10px; display: flex; align-items: center; }
+.ngrid { display: flex; justify-content: center; gap: 14px; margin-top: 26px; }
+.ncard { width: 150px; background: #131319; border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 13px 15px; }
+.ncard .nh { font-size: 11px; font-weight: 700; color: #E6E6E6; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.ncard .nh span { color: #8A8A95; font-weight: 400; }
+.ncard .nr { display: flex; justify-content: space-between; font-size: 11px; color: #8A8A95; padding: 6.5px 0 0; }
+.ncard .nr b { color: #E6E6E6; font-weight: 600; }
+.togglebar { position: absolute; left: 20px; right: 20px; bottom: 26px; height: 48px; border-radius: 24px; background: #1C1C22; padding: 4px; display: flex; }
+.vpill { flex: 1; height: 40px; border-radius: 20px; color: #8A8A95; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.vpill.on { background: #007AFF; color: #fff; font-weight: 600; }
+.hs { position: absolute; width: 22px; height: 22px; border-radius: 11px; background: #FF2D55; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255,45,85,.25), 0 2px 6px rgba(0,0,0,.3); z-index: 60; pointer-events: none; }
+.annos { max-width: 400px; display: flex; column-count: 1; flex-direction: column; gap: 14px; }
+.anno { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 17px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.anno .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.anno .no { width: 24px; height: 24px; border-radius: 12px; background: #FF2D55; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.anno h4 { font-size: 14px; }
+.anno p { font-size: 12.5px; color: #4a5261; line-height: 1.85; margin-top: 8px; }
+.anno code { background: #eef2f7; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; color: #0a5ab8; }
+.ledprev { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.ledcap { font-size: 10.5px; color: #8b93a0; }
+.annos .foot { font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">电平表 · 专业计量</span>
+  <span class="sub">RMS / Peak / TruePeak · 闩锁保持 · 削波 LED</span>
+  <span class="spacer"></span>
+  <span class="chip f8">F8</span>
+  <span class="chip f5">F5</span>
+  <span class="chip keep">保持</span>
+</header>
+<div class="stage">
+  <div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="topbar">
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <span class="tt">直播</span>
+        <span class="host">192.168.1.20:9000</span>
+      </div>
+      <div class="gainrow">
+        <svg class="gmic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg>
+        <div class="gslider">
+          <div class="gtrack"></div>
+          <div class="gfill"></div>
+          <div class="gthumb"></div>
+          <div class="gbubble">+3.0 dB</div>
+          <div class="gscale"><i style="left:0">-24</i><i style="left:25%">-12</i><i style="left:50%">0</i><i style="left:75%">+12</i><i style="left:100%">+24</i></div>
+        </div>
+        <div class="glimit"><span>LIMIT</span><div class="gsw on"><i></i></div></div>
+      </div>
+      <div class="vizcard">
+        <div class="glowline"></div>
+        <div class="clipled">CLIP</div>
+        <div class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/></svg></div>
+        <div class="eq">
+          <i style="animation-delay:0s; animation-duration:.9s"></i>
+          <i style="animation-delay:.15s; animation-duration:1.2s"></i>
+          <i style="animation-delay:.05s; animation-duration:.8s"></i>
+          <i style="animation-delay:.3s; animation-duration:1.05s"></i>
+          <i style="animation-delay:.12s; animation-duration:.95s"></i>
+          <i style="animation-delay:.22s; animation-duration:1.3s"></i>
+          <i style="animation-delay:.4s; animation-duration:.85s"></i>
+          <i style="animation-delay:.18s; animation-duration:1.1s"></i>
+          <i style="animation-delay:.34s; animation-duration:.9s"></i>
+          <i style="animation-delay:.08s; animation-duration:1.25s"></i>
+          <i style="animation-delay:.26s; animation-duration:1s"></i>
+          <i style="animation-delay:.44s; animation-duration:1.15s"></i>
+        </div>
+        <div class="mstrip">
+          <div class="mbar">
+            <div class="mtrack"><div class="mcover" style="left:61%"></div></div>
+            <div class="mhold" style="left:91.3%"></div>
+          </div>
+          <div class="mscale"><i style="left:0">-60</i><i style="left:33.3%">-40</i><i style="left:66.7%">-20</i><i style="left:80%">-12</i><i style="left:90%">-6</i><i style="left:95%">-3</i><i style="left:100%">0</i></div>
+        </div>
+      </div>
+      <div class="statusblk">
+        <div class="liverow"><span class="livedot"></span><b>LIVE</b></div>
+        <div class="rectime">录音 03:24</div>
+        <div class="connline">已连接 · 48kHz · 16bit · 单声道</div>
+        <div class="bytesline">2.1 MB · 队列 0 块 · 丢弃 0 块</div>
+        <div class="qrow"><span class="qchip good"><i></i>网络 优</span></div>
+      </div>
+      <div class="ctrlrow">
+        <div class="ctrlic"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div>
+        <div class="endbtn"><svg viewBox="0 0 24 24" fill="currentColor" transform="rotate(135 12 12)"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+        <div class="ctrlic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="hs" style="left: 150px; top: 428px;">1</div>
+      <div class="hs" style="left: 240px; top: 152px;">4</div>
+    </div>
+    <div class="ph-label">Live 页内嵌紧凑条（VizCard 底部）</div>
+  </div>
+  <div>
+    <div class="phone vizp">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="vtopbar">
+        <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="pill-mute">静音</div>
+        <div class="pill-live"><span class="dot"></span><b>LIVE</b></div>
+      </div>
+      <div class="canvaszone">
+        <div class="vzmeter">
+          <div class="mrow">
+            <div class="mlabel"><b>PRE</b><br>降噪前</div>
+            <div class="mbar">
+              <div class="mtrack pre"><div class="mcover" style="left:49.8%"></div></div>
+              <div class="mhold dim" style="left:82.7%"></div>
+            </div>
+          </div>
+          <div class="mrow">
+            <div class="mlabel"><b>POST</b><br>处理后</div>
+            <div class="mbar">
+              <div class="mtrack"><div class="mcover" style="left:61%"></div></div>
+              <div class="mhold" style="left:91.3%"></div>
+              <div class="mtp" style="left:97%"></div>
+            </div>
+          </div>
+          <div class="mscale"><i style="left:0">-60</i><i style="left:33.3%">-40</i><i style="left:66.7%">-20</i><i style="left:80%">-12</i><i style="left:90%">-6</i><i style="left:95%">-3</i><i style="left:100%">0</i></div>
+          <div class="mlegend"><span class="lg f"></span>RMS <span class="lg h"></span>峰值保持 <span class="lg t"></span>True Peak</div>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="rmsrow"><span class="rms">-23.4</span><span class="rmsu">dB RMS</span></div>
+      </div>
+      <div class="mactions">
+        <div class="mbtn">重置</div>
+        <div class="mled">CLIP</div>
+        <div class="mlufs">LUFS · 预留</div>
+      </div>
+      <div class="ngrid">
+        <div class="ncard">
+          <div class="nh">前置 PRE <span>· 降噪前</span></div>
+          <div class="nr"><span>RMS</span><b>-30.1 dB</b></div>
+          <div class="nr"><span>峰值</span><b>-10.4 dB</b></div>
+          <div class="nr"><span>TP</span><b>—</b></div>
+        </div>
+        <div class="ncard">
+          <div class="nh">后置 POST <span>· 处理后</span></div>
+          <div class="nr"><span>RMS</span><b>-23.4 dB</b></div>
+          <div class="nr"><span>峰值</span><b>-5.2 dB</b></div>
+          <div class="nr"><span>TP</span><b>-1.8 dB</b></div>
+        </div>
+      </div>
+      <div class="togglebar">
+        <div class="vpill">电平图</div>
+        <div class="vpill">波形图</div>
+        <div class="vpill on">电平表</div>
+        <div class="vpill">涟漪</div>
+      </div>
+      <div class="hs" style="left: 24px; top: 130px;">5</div>
+      <div class="hs" style="left: 322px; top: 180px;">2</div>
+      <div class="hs" style="left: 85px; top: 398px;">3</div>
+      <div class="hs" style="left: 230px; top: 398px;">6</div>
+    </div>
+    <div class="ph-label">VizPage 全屏计量视图 · 电平表</div>
+  </div>
+  <div class="annos">
+    <div class="anno">
+      <div class="top"><span class="no">1</span><h4>三段色带刻度</h4><span class="chip f8">F8</span></div>
+      <p>-60~0 dBFS 三段色带：<code>-20</code> 以下绿（正常）、<code>-20~-6</code> 琥珀（预警）、<code>-6~0</code> 红（危险）。色带为静态刻度背景，填充长度由 RMS 驱动。Live 紧凑条与全屏视图共用同一绘制逻辑，仅尺寸参数不同。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">2</span><h4>True Peak · 4× 过采样</h4><span class="chip f8">F8</span></div>
+      <p>对 48kHz PCM 做 4× 过采样插值后取峰，避免采样间峰值漏计。青色竖标 <code>-1.8 dBTP</code>。仅对 POST 抽头（实际发送内容）有意义，PRE 行不显示。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">3</span><h4>闩锁峰值保持 + 重置</h4><span class="chip f8">F8</span></div>
+      <p>白色竖线为峰值保持：到达后保持 1.5s，随后以 6 dB/s 缓慢回落；新峰值超过当前保持值时立即跳变。「重置」同时清零峰值保持与削波 LED。PRE 行保持线弱化显示。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">4</span><h4>削波 LED · 闩锁</h4><span class="chip f8">F8</span></div>
+      <p>POST True Peak ≥ <code>-0.1 dBTP</code> 时点亮并闩锁，不自动熄灭；点击 LED 或「重置」清除。Live 紧凑条右上角为常驻小 LED，全屏视图为按钮级大 LED，两处状态同步。</p>
+      <div class="ledprev">
+        <span class="mled lit">CLIP</span>
+        <span class="mled">CLIP</span>
+        <span class="ledcap">点亮闩锁 / 未点亮</span>
+      </div>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">5</span><h4>PRE / POST 双抽头</h4><span class="chip f8">F8</span><span class="chip keep">保持</span></div>
+      <p>PRE 在降噪前采样（原始输入），POST 在 EQ/增益/限幅后采样（实际发送内容）。现有 <code>feedPre / feedPost</code> 双抽头保持；<code>feedPost</code> 挂点随 F6 管线重排移至末级之后。全局静音时数据不进管线，POST 显示 <code>-inf</code>，PRE 正常。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">6</span><h4>LUFS 预留</h4><span class="chip next">后续</span></div>
+      <p>K 加权 LUFS 集成响度留 <code>MeterMode</code> 枚举位与虚线 UI 入口，本期不实现。走查项：PRE 行无 TP 竖标；静音时 POST 归 <code>-inf</code>；削波 LED 跨视图状态一致。</p>
+    </div>
+    <div class="foot">落地要点：VizRenderer 增加绘制模式分发入口（电平表分支），既有绘制逻辑不动（四视图共用同一 Canvas 与 displaySync，不新建渲染节点）；计量数据由 AudioVizManager 既有 pre/post 缓冲拉取；VizPage 底部分段条四段「电平图 / 波形图 / 电平表 / 涟漪」。页顶增益行为 Live 完整行（刻度 + 气泡），与 live.html / eq.html 同源；Connect 卡内为迷你快捷控件（见 connect.html ⑨）。</div>
+  </div>
+</div>
+</body>
+</html>

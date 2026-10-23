@@ -1,0 +1,32 @@
+/node_modules
+/oh_modules
+**/oh_modules
+/local.properties
+/.idea
+**/build
+/.hvigor
+.cxx
+/.clangd
+/.clang-format
+/.clang-tidy
+**/.test
+/.appanalyzer
+/.cache
+/.deveco
+
+# Internal collaboration docs (kept locally, not published)
+/MEMORY.md
+/MAINTENANCE.md
+
+# PC receiver (kept locally, not published)
+/pc-receiver/
+
+# UI-analysis tool artifacts
+/eq_*
+/.deveveco_tmp.json
+
+# Build & signing artifacts
+*.hap
+*.p12
+*.cer
+*.p7b

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架构图 · 设计审核 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f1 { background: #007AFF; }
+.chip.f3 { background: #34C759; }
+.chip.f4 { background: #FF9500; }
+.chip.f5 { background: #FF2D55; }
+.chip.f6 { background: #32ADE6; }
+.chip.f7 { background: #5856D6; }
+.chip.f8 { background: #00C7BE; }
+.chip.f9 { background: #A2845E; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 30px 26px; }
+.diagram { background: #fff; border: 1px solid #e2e7ee; border-radius: 18px; padding: 28px; margin-bottom: 34px; }
+.diagram h2 { font-size: 17px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.diagram h2 .no { width: 26px; height: 26px; border-radius: 13px; background: #007AFF; color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.diagram .desc { font-size: 12.5px; color: #68727f; margin: 8px 0 22px; line-height: 1.8; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.legend .item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #3d4653; background: #f4f7fa; border: 1px solid #e2e7ee; border-radius: 10px; padding: 4px 12px; }
+.sw { width: 14px; height: 14px; border-radius: 4px; }
+.node { border: 1.5px solid #c9d4e4; border-radius: 10px; background: #f7fafd; padding: 8px 12px; display: inline-block; }
+.node b { font-size: 13px; }
+.node span { display: block; font-size: 11px; color: #68727f; margin-top: 2px; line-height: 1.5; }
+.node.page { border-color: #9ec4f0; background: #eef6ff; }
+.node.page b { color: #0a5ab8; }
+.node.cover { border-color: #58c07a; background: #ecfaf0; }
+.node.cover b { color: #15753a; }
+.node.comp { border-color: #c9aaf0; background: #f7effe; }
+.node.comp b { color: #7132ad; }
+.node.svc { border-color: #f0bd7a; background: #fff6ea; }
+.node.svc b { color: #9a5b13; }
+.node.retired { border-style: dashed; border-color: #c2c8d1; background: #f2f3f5; }
+.node.retired b { color: #8b93a0; text-decoration: line-through; }
+.node.hot { border-color: #ff9fb4; background: #fff0f4; }
+.node.hot b { color: #c41b4b; }
+.tree ul { padding-left: 30px; position: relative; margin-top: 6px; }
+.tree ul::before { content: ''; position: absolute; left: 9px; top: -10px; bottom: 16px; width: 2px; background: #d9dfe8; }
+.tree > ul::before { display: none; }
+.tree li { list-style: none; position: relative; padding: 5px 0 5px 6px; }
+.tree li::before { content: ''; position: absolute; left: -21px; top: 21px; width: 21px; height: 2px; background: #d9dfe8; }
+.tree li:last-child::after { content: ''; position: absolute; left: -23px; top: 23px; bottom: 0; width: 8px; background: #fff; }
+.tree > ul > li::before, .tree > ul > li::after { display: none; }
+.cols { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+.col { flex: 1; min-width: 280px; border: 1.5px solid #dbe2ec; border-radius: 14px; background: #fbfcfe; padding: 16px; }
+.col h3 { font-size: 14px; padding-bottom: 10px; border-bottom: 1px solid #e6ebf2; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+.col h3 .badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; color: #fff; }
+.col ul { list-style: none; }
+.col li { font-size: 12px; color: #3d4653; padding: 5px 0 5px 2px; line-height: 1.6; }
+.col li b { font-size: 12.5px; color: #1c2129; }
+.col li .mini { display: block; font-size: 11px; color: #8b93a0; }
+.col li.add b::after { content: ' 新建'; font-size: 10px; color: #fff; background: #FF2D55; border-radius: 7px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+.col li.mod b::after { content: ' 修改'; font-size: 10px; color: #fff; background: #FF9500; border-radius: 7px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+.col li.frz b::after { content: ' 不动'; font-size: 10px; color: #fff; background: #8E8E93; border-radius: 7px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+.dep { width: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.dep .arrow { width: 100%; height: 3px; background: #b9c6da; position: relative; }
+.dep .arrow::after { content: ''; position: absolute; right: -1px; top: -5px; border-left: 12px solid #b9c6da; border-top: 6.5px solid transparent; border-bottom: 6.5px solid transparent; }
+.dep .lbl { font-size: 11px; color: #68727f; text-align: center; line-height: 1.4; }
+.flowband { border: 1.5px solid #e0e6ee; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; background: #fbfcfe; }
+.flowband .bt { font-size: 12px; font-weight: 700; color: #5b6472; margin-bottom: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.fb { border: 1.5px solid #c9d4e4; border-radius: 10px; background: #fff; padding: 10px 14px; text-align: center; }
+.fb b { font-size: 13px; display: block; }
+.fb span { font-size: 11px; color: #68727f; display: block; margin-top: 3px; line-height: 1.5; }
+.fb.new { border-color: #58c07a; background: #ecfaf0; }
+.fb.new b { color: #15753a; }
+.fb.frz { border-style: dashed; border-color: #c2c8d1; background: #f6f7f9; }
+.fb.mod { border-color: #f0bd7a; background: #fff6ea; }
+.fb.mod b { color: #9a5b13; }
+.fb.store { border-color: #f0bd7a; background: #fffaf0; min-width: 260px; }
+.fb.store b { color: #9a5b13; }
+.fb.f6 { border-color: #8fd0ec; background: #eef8fd; }
+.fb.f6 b { color: #14708f; }
+.fb.f7 { border-color: #b8b4ee; background: #f1f0fc; }
+.fb.f7 b { color: #4b45b8; }
+.fb.f8 { border-color: #8adfd9; background: #eefcfa; }
+.fb.f8 b { color: #0b7c74; }
+.fb.f9 { border-color: #d4b48c; background: #faf5ec; }
+.fb.f9 b { color: #8a6434; }
+.fb.f4b { border-color: #f5c98a; background: #fff7ea; }
+.fb.f4b b { color: #b06a0a; }
+.fb.dash { border-style: dashed; border-color: #c2c8d1; background: #f6f7f9; }
+.fb.dash b { color: #8b93a0; }
+.wbrk { width: 100%; height: 0; }
+.pipenote { font-size: 11.5px; color: #8b93a0; margin-top: 12px; line-height: 1.8; }
+.row { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+.arr { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; padding: 0 4px; }
+.arr .line { width: 100%; height: 2.5px; background: #b9c6da; position: relative; }
+.arr .line::after { content: ''; position: absolute; right: -1px; top: -4.5px; border-left: 10px solid #b9c6da; border-top: 5.5px solid transparent; border-bottom: 5.5px solid transparent; }
+.arr .lbl { font-size: 10px; color: #8b93a0; margin-top: 5px; white-space: nowrap; }
+.arr.back .line::before { content: ''; position: absolute; left: -1px; top: -4.5px; border-right: 10px solid #b9c6da; border-top: 5.5px solid transparent; border-bottom: 5.5px solid transparent; }
+.keys { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+.key { font-size: 10.5px; font-family: Consolas, monospace; background: #f0f3f8; border: 1px solid #dfe5ee; color: #5b6472; border-radius: 6px; padding: 2px 7px; }
+.key.new { background: #ecfaf0; border-color: #9edbb2; color: #15753a; font-weight: 700; }
+.writers { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; justify-content: center; }
+.writer { font-size: 11px; color: #5b6472; background: #f4f7fa; border: 1px solid #e2e7ee; border-radius: 10px; padding: 6px 12px; }
+.writer b { color: #1c2129; }
+.writer .k { font-family: Consolas, monospace; color: #15753a; font-weight: 700; }
+footer { margin-top: 8px; padding-top: 18px; border-top: 1px solid #dde3ea; font-size: 12px; color: #7b8494; line-height: 2; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">架构图 × 4</span>
+  <span class="sub">应用结构树 · 模块依赖 · 音频管线 · 数据流</span>
+  <span class="spacer"></span>
+  <span class="chip f1">F1</span>
+  <span class="chip f3">F3</span>
+  <span class="chip f4">F4</span>
+  <span class="chip f5">F5</span>
+  <span class="chip f6">F6</span>
+  <span class="chip f7">F7</span>
+  <span class="chip f8">F8</span>
+  <span class="chip f9">F9</span>
+</header>
+<div class="wrap">
+<section class="diagram">
+  <h2><span class="no">1</span>应用结构树 <span class="chip f1">F1 router 退役</span></h2>
+  <p class="desc">Connect 成为唯一 @Entry 根页；Live / VizPage 由独立 router 页改为 bindContentCover 模态层级，Welcome 改为条件覆盖层。cover 之间通过回调（onExit / onDone）通信，不再经过路由栈。F6 / F8 / F9 为 LiveView 与设置页新增区块。</p>
+  <div class="legend">
+    <div class="item"><span class="sw" style="background:#eef6ff;border:1.5px solid #9ec4f0"></span>页面（@Entry 根）</div>
+    <div class="item"><span class="sw" style="background:#ecfaf0;border:1.5px solid #58c07a"></span>cover 模态层</div>
+    <div class="item"><span class="sw" style="background:#f7effe;border:1.5px solid #c9aaf0"></span>组件</div>
+    <div class="item"><span class="sw" style="background:#fff6ea;border:1.5px solid #f0bd7a"></span>服务</div>
+    <div class="item"><span class="sw" style="background:#fff0f4;border:1.5px solid #ff9fb4"></span>一镜到底端点</div>
+    <div class="item"><span class="sw" style="background:#f2f3f5;border:1.5px dashed #c2c8d1"></span>退役</div>
+  </div>
+  <div class="tree">
+    <ul>
+      <li><div class="node svc"><b>EntryAbility</b><span>loadContent('pages/Connect') · onModeChanged 接线（F4）· abilityContext 写入 AppStorage</span></div>
+        <ul>
+          <li><div class="node page"><b>Connect（pages/Connect.ets）</b><span>唯一 @Entry 根页 · Stack 根布局 · 全部 router 调用移除</span></div>
+            <ul>
+              <li><div class="node"><b>Stack（alignContent: Bottom）</b><span>bg_glow 径向渐变背景（F3）</span></div>
+                <ul>
+                  <li><div class="node"><b>Tabs（barPosition: End · barHeight 56）</b><span>barOverlap(true) + barFloatingStyle 悬浮页签（F3）</span></div>
+                    <ul>
+                      <li><div class="node"><b>TabContent 0 · 连接</b><span>OccupiedBanner / DeviceCard（网络状态 + 三态质量徽章 F4）/ ConfigCard（+ 输入增益行 F6）/ ConnectCard</span></div></li>
+                      <li><div class="node"><b>TabContent 1 · 设置</b><span>SettingsView：外观 / 麦克风设备（F5）/ 直播与后台（F9：屏幕常亮 · 来电自动恢复 · 弱网自动降级）/ 诊断 / 关于</span></div></li>
+                    </ul>
+                  </li>
+                  <li><div class="node hot"><b>MiniLiveBar</b><span>streamBusy !== 'idle' 条件渲染 · geometryTransition('liveCard', {follow:true}) 一镜到底 follow 端（F1）· springMotion 上浮入场（F2）· 点击 → liveOpen = true</span></div></li>
+                  <li><div class="node cover"><b>WelcomeView 覆盖层</b><span>welcomed === 0 时条件覆盖（F1，替代 router.replaceUrl）· 开始使用 → markWelcomed → onDone() → welcomed = 1</span></div></li>
+                  <li><div class="node cover"><b>bindContentCover(liveOpen) → LiveView</b><span>全屏模态（F1）· modalTransition: NONE · onExit 回调收起 · animateTo 350ms Curve.Friction 翻转 liveOpen</span></div>
+                    <ul>
+                      <li><div class="node"><b>TopBar / StatusBlock / ControlRow</b><span>断开 = svc.stop() + onExit() · chevron = onExit()（串流继续）· StatusBlock 追加质量 chip（F4）</span></div></li>
+                      <li><div class="node comp"><b>GainRow 增益行（F6 新增）</b><span>±24dB · 0.5dB 步进 · 双击归零 · LIMIT 开关（cfgGainDb / cfgLimiterOn）</span></div></li>
+                      <li><div class="node hot"><b>VizCard</b><span>geometryTransition('liveCard') 一镜到底 anchor 端（F1）· 内含 VizPanel 320 · 内嵌电平表条 + 削波 LED（F8）· 右上角展开钮 → vizOpen = true</span></div></li>
+                      <li><div class="node cover"><b>bindContentCover(vizOpen) → VizView</b><span>二级模态（F1）· 退化方案：若模态叠模态不可用，经 AppStorage key vizCoverOpen 提升为 Connect 二级 cover</span></div></li>
+                      <li><div class="node cover"><b>bindSheet(configOpen) → ConfigSheet</b><span>音频配置 · systemMaterial ULTRA_THICK 材质（F3）· ConfigSections springMotion 折叠（F2）· 参数均衡器折叠面板（F7）</span></div></li>
+                    </ul>
+                  </li>
+                  <li><div class="node cover"><b>bindSheet(sheetOpen) → EndpointSheet</b><span>编辑目标端点 · 高度 340 · systemMaterial 材质（F3）</span></div></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><div class="node svc"><b>services/</b><span>StreamService（管线重排 F6 · 打断自动恢复 F9 · KeepScreenOn 开关化 F9）· AvSessionService（F9 新建：AVSession 'audio' · play / pause = 静音切换 · stop = 断开）</span></div></li>
+          <li><div class="node retired"><b>router（pushUrl / back / replaceUrl）</b><span>navLock 防重一并移除 · main_pages.json 收敛为 ["pages/Connect"]</span></div></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</section>
+<section class="diagram">
+  <h2><span class="no">2</span>模块依赖图 <span class="chip keep">entry → common 单向</span></h2>
+  <p class="desc">依赖方向保持 entry → common（HAR）→ 系统能力，禁止反向。新建文件 5 个：entry 侧 Materials.ets / UiEnvService.ets / AvSessionService.ets，common 侧 AudioPipeline.ets / EqStage.ets；均不触碰 common 对外契约与 VizRenderer 内部。</p>
+  <div class="cols">
+    <div class="col">
+      <h3>entry（HAP）<span class="badge" style="background:#007AFF">应用层</span></h3>
+      <ul>
+        <li class="mod"><b>pages/</b><span class="mini">Connect（@Entry）· Live→LiveView · VizPage→VizView · Welcome→WelcomeView · Settings</span></li>
+        <li class="mod"><b>component/</b><span class="mini">VizCanvas · VizPanel · VizRenderer（F8 增电平表绘制模式分发入口 · 既有绘制逻辑不动）· ConfigSections（F6 增益行 + F7 EQ 折叠面板）</span></li>
+        <li class="add"><b>component/Materials.ets</b><span class="mini">集中 uiMaterial 材质实例（Mat.card / bar / sheet / toast / control）（F3）</span></li>
+        <li class="mod"><b>services/StreamService.ets</b><span class="mini">管线重排 NR→EQ→Gain→Limiter（F6）· netWatch（F4）· 打断自动恢复（F9）· timer 守卫 · 设备 API</span></li>
+        <li class="add"><b>services/AvSessionService.ets</b><span class="mini">AVSession 'audio' · 与串流生命周期成对 · play / pause = 静音切换 · stop = 断开（F9）</span></li>
+        <li class="add"><b>services/UiEnvService.ets</b><span class="mini">状态栏内容色 + KeepScreenOn 窗口操作（单例）</span></li>
+        <li class="mod"><b>entryability/EntryAbility.ets</b><span class="mini">onModeChanged → AppStorage 'themeMode' 接线</span></li>
+      </ul>
+    </div>
+    <div class="dep">
+      <div class="arrow"></div>
+      <div class="lbl">依赖（单向）<br>import 'common'</div>
+    </div>
+    <div class="col">
+      <h3>common（HAR）<span class="badge" style="background:#34C759">纯逻辑</span></h3>
+      <ul>
+        <li class="mod"><b>services/NetInfoService.ets</b><span class="mini">+ startWatch / stopWatch（NetConnection）· 质量评分 good / fair / weak（F4）</span></li>
+        <li class="mod"><b>services/ThemeService.ets</b><span class="mini">+ onModeChanged 回调字段</span></li>
+        <li class="mod"><b>model/TcpClientManager.ets</b><span class="mini">+ kickReconnect（不清退避策略本体）· 质量指标导出：队列水位 / 丢弃率 / 重连计数（F4）</span></li>
+        <li class="mod"><b>model/AudioVizManager.ets</b><span class="mini">+ TruePeak 4× / 闩锁保持 + 重置 / 削波闩锁 / MeterMode 预留 LUFS · feedPost 挂点随 F6 移管线末级（F8）</span></li>
+        <li class="add"><b>model/AudioPipeline.ets</b><span class="mini">IAudioStage / GainStage / LimiterStage / BiquadFilter（F6）</span></li>
+        <li class="add"><b>model/EqStage.ets</b><span class="mini">5 段 biquad（RBJ）· F / G / Q · 预设常量（F7）</span></li>
+        <li class="frz"><b>AudioCaptureManager · Fft</b><span class="mini">不动</span></li>
+        <li class="frz"><b>MicLogger · PermissionUtil · DF3(JNI)</b><span class="mini">不动</span></li>
+      </ul>
+    </div>
+    <div class="dep">
+      <div class="arrow"></div>
+      <div class="lbl">@kit.* / @ohos.*</div>
+    </div>
+    <div class="col">
+      <h3>系统能力<span class="badge" style="background:#8E8E93">SDK API 26</span></h3>
+      <ul>
+        <li><b>@kit.ArkUI</b><span class="mini">uiMaterial（API 26）· curves.springMotion · window · router（退役中）</span></li>
+        <li><b>@kit.ArkGraphics2D</b><span class="mini">displaySync 帧同步（F5）</span></li>
+        <li><b>@kit.AudioKit</b><span class="mini">audio：AudioCapturer · AudioSessionManager（设备选择 F5）· RoutingManager（deviceChange 守护）</span></li>
+        <li><b>@kit.NetworkKit</b><span class="mini">NetConnection netAvailable / netLost（F4）</span></li>
+        <li><b>@kit.AvSessionKit</b><span class="mini">AVSession 创建 / 元数据 / 指令监听（F9）</span></li>
+        <li><b>@kit.BackgroundTasksKit</b><span class="mini">长时任务 audioRecording（已有声明 · F9 与 AVSession 标准组合）</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="diagram">
+  <h2><span class="no">3</span>音频管线与抽头 <span class="chip f6">F6 管线</span><span class="chip f7">F7 EQ</span><span class="chip f8">F8 计量</span></h2>
+  <p class="desc">StreamService.handleAudioData 管线重排：NR → EQ → Gain → Limiter → enqueueData。feedPre 保持原始采集（NR 前），feedPost 移至管线最终输出（F8 调整）；静音路径不进管线（现状保持）；DF3 内部完全不动。</p>
+  <div class="flowband">
+    <div class="bt">串流主路径（PCM · 48kHz / 16bit / mono · 演示配置）</div>
+    <div class="row">
+      <div class="fb"><b>麦克风</b><span>硬件输入</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">采集</div></div>
+      <div class="fb frz"><b>AudioCapturer</b><span>AudioCaptureManager · VOICE_COMMUNICATION 默认源</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">feedPre 抽头（保持）</div></div>
+      <div class="fb frz"><b>DF3 神经网络降噪</b><span>JNI 端侧离线 · 输出强制 48k/16bit/mono · 不动</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">NR 后</div></div>
+      <div class="fb f7"><b>EqStage</b><span>5 段参量 biquad · 默认旁通 = 不构链 bit 级直通 · 零开销（F7）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">EQ 后</div></div>
+      <div class="fb f6"><b>GainStage</b><span>±24dB · 0.5dB 步进软件增益（F6）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">增益后</div></div>
+      <div class="fb f6"><b>LimiterStage</b><span>brickwall · 仅超 -0.1dBFS 介入（F6）</span></div>
+      <div class="wbrk"></div>
+      <div class="arr"><div class="line"></div><div class="lbl">feedPost 抽头移此 · TP 4×（F8）</div></div>
+      <div class="fb mod"><b>TcpClientManager</b><span>enqueueData · 250ms 时延上限丢最旧 · 增量：kickReconnect / 质量指标（F4）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">帧协议 5 字节头</div></div>
+      <div class="fb frz"><b>PC 接收端</b><span>PCM 播放 · 不在本工程范围</span></div>
+    </div>
+    <div class="pipenote">全局静音：静音帧直发，不进管线（现状保持，POST 电平表显示 -inf，PRE 正常）。弱网自动降级经既有 CONFIG 重配置帧改采样率 48k→16k（F4，PC 无需改动）。FRAME_TYPE 预留 3 = Opus 压缩帧（后续，PC 端暂不更新）。</div>
+  </div>
+  <div class="flowband">
+    <div class="bt">处理管线抽象（意见 7 落点 · 可插拔 Stage）</div>
+    <div class="row">
+      <div class="fb new"><b>IAudioStage</b><span>process(frame) / reset() · 串接顺序由 StreamService 定义（F6 新建 AudioPipeline.ets）</span></div>
+      <div class="arr back"><div class="line"></div><div class="lbl">实现 ⇦</div></div>
+      <div class="fb frz"><b>NrStage</b><span>DF3 现有实现封装 · 内部不动</span></div>
+      <div class="fb f7"><b>EqStage</b><span>F7</span></div>
+      <div class="fb f6"><b>GainStage</b><span>F6</span></div>
+      <div class="fb f6"><b>LimiterStage</b><span>F6</span></div>
+      <div class="fb dash"><b>NrStageV2</b><span>未来降噪算法 = 新 Stage 即插即用（后续）</span></div>
+      <div class="fb dash"><b>OpusStage</b><span>压缩编码 Stage（后续 · 帧类型 3 预留）</span></div>
+    </div>
+  </div>
+</section>
+<section class="diagram">
+  <h2><span class="no">4</span>数据流图 <span class="chip f4">F4 质量流</span><span class="chip f9">F9 后台流</span><span class="chip keep">V1 契约</span></h2>
+  <p class="desc">状态总线（AppStorage · V1）存量 key 名称与语义零改动（32 个存量 key · 状态量 + 上下文 / 对象引用），仅新增 13 个（全部缺省兜底，旧数据无迁移）。电平表视图不新增 key：电平图 = vizDeco 0 + vizShowBars · 波形图 = vizDeco 0 + vizShowWave · 电平表 = vizDeco 1 · 涟漪 = vizDeco 2。计量瞬时值（rms / tp / 闩锁 / 削波）不走 AppStorage，由 vizMgr 拉取（现有模式）。</p>
+
+  <div class="flowband">
+    <div class="bt">状态总线（AppStorage · V1 契约保留）</div>
+    <div class="row">
+      <div class="fb mod"><b>StreamService</b><span>timer 守卫 · 管线重排（F6）· 打断自动恢复（F9）· KeepScreenOn 开关化（F9）</span></div>
+      <div class="arr back"><div class="line"></div><div class="lbl">读写 ⇄</div></div>
+      <div class="fb store">
+        <b>AppStorage（存量契约零改动 + 新增 13）</b>
+        <span>@StorageProp / @StorageLink 单向与双向订阅</span>
+        <div class="keys">
+          <span class="key">streamBusy</span><span class="key">statConn</span><span class="key">statRecord</span><span class="key">statBytes</span><span class="key">statQueue</span><span class="key">statLog</span><span class="key">pcIp</span><span class="key">pcPort</span><span class="key">cfgSource</span><span class="key">cfgRate</span><span class="key">cfgBits</span><span class="key">cfgChannels</span><span class="key">cfgNr</span><span class="key">cfgNoisy</span><span class="key">cfgDfStrength</span><span class="key">cfgProNr</span><span class="key">proNrAvailable</span><span class="key">probing</span><span class="key">probeText</span><span class="key">nrSupported</span><span class="key">supportMatrix</span><span class="key">matrixLoaded</span><span class="key">micOccupied</span><span class="key">vizMuted</span><span class="key">vizStreaming</span><span class="key">vizDeco</span><span class="key">vizShowBars</span><span class="key">vizShowWave</span><span class="key">vizNrActive</span><span class="key">vizPageActive</span><span class="key">vizMgr</span><span class="key">abilityContext</span>
+          <span class="key new">netOnline</span><span class="key new">netBearer</span><span class="key new">netQuality</span><span class="key new">themeMode</span><span class="key new">inputDeviceName</span><span class="key new">cfgGainDb</span><span class="key new">cfgLimiterOn</span><span class="key new">cfgEqBypass</span><span class="key new">cfgEqBands</span><span class="key new">cfgEqPreset</span><span class="key new">cfgAutoDowngrade</span><span class="key new">cfgKeepScreenOn</span><span class="key new">cfgAutoRecover</span>
+        </div>
+      </div>
+      <div class="arr back"><div class="line"></div><div class="lbl">订阅 ⇄</div></div>
+      <div class="fb"><b>UI 层</b><span>Connect · LiveView · VizView · VizCanvas · SettingsView（@StorageProp / @StorageLink）</span></div>
+    </div>
+    <div class="writers">
+      <div class="writer"><b>NetInfoService.startWatch</b> → <span class="k">netOnline</span> / <span class="k">netBearer</span> / <span class="k">netQuality</span>（F4 · netAvailable / netLost + 评分 + kickReconnect）</div>
+      <div class="writer"><b>ThemeService.onModeChanged</b> → <span class="k">themeMode</span>（VizCanvas 合成暗判定统一）</div>
+      <div class="writer"><b>AudioSessionManager.on('currentInputDeviceChanged')</b> → <span class="k">inputDeviceName</span>（F5）</div>
+      <div class="writer"><b>ConfigSections 增益行（Connect 配置卡 · Live 增益行）</b> → <span class="k">cfgGainDb</span> / <span class="k">cfgLimiterOn</span>（F6 · preferences 持久化）</div>
+      <div class="writer"><b>LiveView 配置 sheet → 参数均衡器</b> → <span class="k">cfgEqBypass</span> / <span class="k">cfgEqBands</span> / <span class="k">cfgEqPreset</span>（F7 · Connect 卡不含 EQ · preferences 持久化）</div>
+      <div class="writer"><b>SettingsView（直播与后台）</b> → <span class="k">cfgKeepScreenOn</span> / <span class="k">cfgAutoRecover</span> / <span class="k">cfgAutoDowngrade</span>（F9 / F4）</div>
+    </div>
+  </div>
+
+  <div class="flowband">
+    <div class="bt">网络质量流（F4 · 三态 + 自动降级）</div>
+    <div class="row">
+      <div class="fb"><b>NetConnection</b><span>RSSI · bearer（WiFi / 蜂窝 / unknown）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">信号</div></div>
+      <div class="fb mod"><b>TCP 运行指标</b><span>队列水位 · 丢弃率 · 重连计数（TcpClientManager 导出 · F4）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">汇入</div></div>
+      <div class="fb mod"><b>NetInfoService 评分</b><span>good / fair / weak（F4）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">写入</div></div>
+      <div class="fb"><b>netQuality</b><span>新 key · UI 订阅</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">展示 / 决策</div></div>
+      <div class="fb"><b>UI 徽章</b><span>Connect 三态徽章 · Live 质量 chip（弱网变体含降级提示）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">持续 weak</div></div>
+      <div class="fb f4b"><b>弱网自动降级</b><span>CONFIG 帧 48k→16k · 迟滞 + 30s 最短间隔 · 设置可关 · 恢复 good 自动升回</span></div>
+    </div>
+  </div>
+
+  <div class="flowband">
+    <div class="bt">渲染与计量链路（F5 帧同步 · F8 电平表）</div>
+    <div class="row">
+      <div class="fb mod"><b>AudioVizManager</b><span>F8 扩展：TruePeak 4× · 闩锁保持 + 重置 · 削波闩锁 · MeterMode 预留 LUFS · feedPost 移管线末级</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">每帧拉取</div></div>
+      <div class="fb mod"><b>VizRenderer</b><span>F8 增电平表绘制模式（新增分发入口 · 既有绘制逻辑不动）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">onTick</div></div>
+      <div class="fb mod"><b>VizCanvas / VizView</b><span>驱动更换：setInterval 33ms → displaySync（F5 · expected 60 / min 30 / max 120 · stop 成对释放）</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">低频控件</div></div>
+      <div class="fb new"><b>Live VizCard 内嵌电平条</b><span>水平表条 + 削波 LED + 重置（F8 · 与全屏视图状态同步）</span></div>
+    </div>
+  </div>
+
+  <div class="flowband">
+    <div class="bt">后台 / 锁屏流（F9 · 长时任务已有）</div>
+    <div class="row">
+      <div class="fb"><b>串流生命周期</b><span>start / stop 成对</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">保活</div></div>
+      <div class="fb frz"><b>长时任务 audioRecording</b><span>已有 · startBgTask / stopBgTask 成对 · module.json5 已声明</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">挂接</div></div>
+      <div class="fb f9"><b>AvSessionService（F9 新建）</b><span>createAVSession 'audio' · setAVMetadata（HarmonyMic 直播中 · 端点）· activate 与串流成对</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">锁屏 / 控制中心</div></div>
+      <div class="fb"><b>媒体卡片控制</b><span>play / pause = 静音切换（串流不断）· stop = 断开串流</span></div>
+      <div class="arr"><div class="line"></div><div class="lbl">通话结束</div></div>
+      <div class="fb"><b>打断自动恢复</b><span>audioInterrupt END → 自动恢复采集 · cfgAutoRecover 默认开 · 失败 toast 提示手动</span></div>
+    </div>
+  </div>
+
+  <footer>
+    新增 key 写入时机：网络三键由 NetConnection 回调与评分实时写入；themeMode 由 EntryAbility 在 ThemeService 恢复与切换时写入；inputDeviceName 由设备切换事件写入；配置键（增益 / EQ / 三开关）由 UI 写入并经 preferences 持久化。13 个新 key 全部缺省兜底，存量契约零改动。
+  </footer>
+</section>
+</div>
+</body>
+</html>

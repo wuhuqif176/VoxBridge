@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "VoxBridge"
+    },
+    {
+      "name": "microphone_permission_reason",
+      "value": "采集麦克风声音并实时传输到 PC 端播放"
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一镜到底转场 · 演示与实现说明 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 90px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f1 { background: #007AFF; }
+.chip.bad { background: #c7402d; }
+.stage { display: flex; gap: 56px; justify-content: center; align-items: flex-start; padding: 36px 24px 10px; flex-wrap: wrap; }
+.demo { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.demo h3 { font-size: 15px; }
+.demo h3 .tag { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 9px; margin-left: 8px; vertical-align: 2px; }
+.tag.old { background: #fbe3de; color: #c7402d; }
+.tag.new { background: #dcedff; color: #0a62c9; }
+.phone { width: 320px; height: 660px; border-radius: 34px; border: 10px solid #10141a; overflow: hidden; position: relative; flex-shrink: 0; background: #121212; box-shadow: 0 26px 70px rgba(15,25,45,.42), inset 0 0 0 2px #2a313c; }
+.statusbar { height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: #E6E6E6; font-size: 11.5px; font-weight: 600; position: relative; z-index: 5; }
+.con { position: absolute; inset: 0; }
+.c-title { font-size: 19px; font-weight: 700; color: #E6E6E6; padding: 6px 20px 12px; }
+.c-card { margin: 0 14px 11px; background: #212121; border-radius: 15px; padding: 13px 15px; }
+.c-name { font-size: 12.5px; font-weight: 700; color: #E6E6E6; }
+.c-sub { font-size: 10.5px; color: #8A8A95; margin-top: 3px; }
+.c-pill { font-size: 9.5px; color: #8A8A95; background: #282828; border-radius: 8px; padding: 2.5px 7px; margin-top: 6px; display: inline-block; }
+.c-lines i { display: block; height: 9px; border-radius: 4.5px; background: #282828; margin: 7px 0; }
+.c-lines i:nth-child(2) { width: 70%; }
+.c-lines i:nth-child(3) { width: 52%; }
+.c-btn { margin: 2px 14px 0; height: 44px; border-radius: 22px; background: #212121; display: flex; align-items: center; justify-content: center; color: #8A8A95; font-size: 11.5px; }
+.c-tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 54px; display: flex; align-items: center; }
+.c-tabbar span { flex: 1; text-align: center; font-size: 10.5px; color: #8A8A95; }
+.minibar { position: absolute; left: 14px; right: 14px; bottom: 66px; height: 60px; border-radius: 20px; background: #212121; border: 1px solid rgba(255,255,255,.06); display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 10; }
+.mlive { display: flex; align-items: center; gap: 5px; }
+.mlive .dot { width: 7px; height: 7px; border-radius: 3.5px; background: #FF6A6A; animation: pulse 1.4s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,106,106,.6); } 70% { box-shadow: 0 0 0 6px rgba(255,106,106,0); } 100% { box-shadow: 0 0 0 0 rgba(255,106,106,0); } }
+.mlive b { font-size: 10.5px; font-weight: 800; color: #FF6A6A; letter-spacing: .5px; }
+.meq { display: flex; align-items: flex-end; gap: 2.5px; height: 22px; }
+.meq i { width: 3.5px; border-radius: 2px; background: #64D2FF; animation: mx 1s ease-in-out infinite alternate; }
+@keyframes mx { from { height: 15%; } to { height: var(--hh, 90%); } }
+.msub { font-size: 9.5px; color: #8A8A95; margin-left: auto; }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 40; pointer-events: none; }
+.livep { position: absolute; inset: 0; background: #121212; z-index: 20; opacity: 0; }
+.l-top { display: flex; align-items: center; padding: 4px 10px 0 2px; height: 46px; color: #E6E6E6; }
+.l-chev { font-size: 24px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.l-title { font-size: 15px; font-weight: 700; margin-left: 2px; }
+.l-host { font-size: 10.5px; color: #8A8A95; margin-left: 10px; }
+.l-mute { font-size: 10px; color: #8A8A95; background: #1C1C22; border-radius: 11px; padding: 4px 10px; margin-left: auto; }
+.l-live { display: flex; align-items: center; gap: 4px; background: rgba(46,52,199,.35); border-radius: 11px; padding: 4px 9px; margin-left: 8px; }
+.l-live .dot { width: 6px; height: 6px; border-radius: 3px; background: #FF6A6A; animation: pulse 1.4s ease-out infinite; }
+.l-live b { font-size: 9.5px; font-weight: 800; color: #FF6A6A; }
+.l-viz { margin: 12px 14px 0; height: 300px; border-radius: 22px; background: #1C1C22; position: relative; overflow: hidden; }
+.l-freq { position: absolute; left: 14px; right: 14px; bottom: 16px; display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+.l-freq i { width: 7px; border-radius: 3.5px; background: linear-gradient(180deg, #64D2FF, #0A84FF); opacity: .9; animation: mx2 .9s ease-in-out infinite alternate; }
+@keyframes mx2 { from { height: 8%; } to { height: var(--hh, 78%); } }
+.l-cap { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 9.5px; color: rgba(230,230,230,.28); }
+.l-stat { display: flex; justify-content: center; gap: 22px; margin-top: 16px; }
+.l-st { text-align: center; }
+.l-st b { font-size: 17px; font-weight: 800; color: #E6E6E6; display: block; }
+.l-st span { font-size: 9.5px; color: #8A8A95; }
+.l-ctl { position: absolute; left: 0; right: 0; bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 40px; }
+.l-more { width: 46px; height: 46px; border-radius: 23px; background: #282828; color: #E6E6E6; font-size: 19px; display: flex; align-items: center; justify-content: center; }
+.l-end { width: 64px; height: 64px; border-radius: 32px; background: #FF6A6A; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(255,106,106,.4); }
+.l-end svg { width: 24px; height: 24px; fill: #fff; }
+.l-muteb { width: 46px; height: 46px; border-radius: 23px; background: #282828; display: flex; align-items: center; justify-content: center; }
+.l-muteb svg { width: 20px; height: 20px; stroke: #E6E6E6; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+.morph { position: absolute; left: 14px; right: 14px; bottom: 66px; height: 60px; border-radius: 20px; background: #1C1C22; z-index: 30; overflow: hidden; transition: all 350ms cubic-bezier(.2, 0, .06, 1); }
+.morph.noanim { transition: none; }
+.m-inner-mini { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 16px; gap: 12px; transition: opacity 160ms 120ms; }
+.m-inner-big { position: absolute; inset: 0; opacity: 0; transition: opacity 200ms 150ms; }
+.m-inner-big .l-freq { bottom: 20px; }
+.newlive { position: absolute; inset: 32px 0 0; z-index: 25; opacity: 0; transition: opacity 220ms 130ms; }
+.newlive.noanim { transition: none; }
+.p2 .morph, .p3 .morph { bottom: 224px; height: 300px; border-radius: 22px; }
+.p2 .m-inner-mini, .p3 .m-inner-mini { opacity: 0; }
+.p2 .m-inner-big, .p3 .m-inner-big { opacity: 1; }
+.p3 .newlive { opacity: 1; }
+.p2 .flash, .p3 .flash { opacity: 0; }
+.old .p2 .livep { opacity: 1; transition: none; }
+.old .p2 .flash { opacity: .9; transition: opacity 60ms; }
+.old .p3 .livep { opacity: 1; transition: none; }
+.old .p3 .flash { opacity: 0; transition: opacity 140ms; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 340px; }
+.st { font-size: 11px; padding: 5px 11px; border-radius: 13px; background: #fff; border: 1px solid #dfe4eb; color: #7b8494; font-weight: 600; transition: all .25s; }
+.st.on { background: #0a62c9; border-color: #0a62c9; color: #fff; }
+.st.on.bad2 { background: #c7402d; border-color: #c7402d; }
+.apiwrap { max-width: 1180px; margin: 26px auto 0; padding: 0 24px; }
+.apiwrap h2 { font-size: 17px; margin-bottom: 4px; }
+.apiwrap .sub2 { font-size: 12px; color: #7b8494; margin-bottom: 16px; }
+.apigrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 14px; }
+.api { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 16px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.api h4 { font-size: 13.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.api .k { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: #dcedff; color: #0a62c9; }
+.api p { font-size: 11.5px; color: #4a5261; line-height: 1.8; margin-top: 8px; }
+.api code { background: #eef2f7; border-radius: 5px; padding: 1px 5px; font-size: 10.5px; color: #0a5ab8; word-break: break-all; }
+.seg { margin-top: 22px; font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 13px 17px; }
+.seg code { background: #e8edf3; border-radius: 5px; padding: 1px 5px; font-size: 11px; color: #0a5ab8; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">一镜到底转场 · 连接页 mini 条 → 直播页</span>
+  <span class="sub">左右对比 · 自动循环播放</span>
+  <span class="spacer"></span>
+  <span class="chip bad">现状问题</span>
+  <span class="chip f1">F1 方案</span>
+</header>
+<div class="stage">
+  <div class="demo old" id="demoOld">
+    <h3>现状：router 硬切<span class="tag old">问题</span></h3>
+    <div class="phone p1" id="phOld">
+      <div class="con">
+        <div class="c-title">HarmonyMic</div>
+        <div class="c-card"><div class="c-name">HarmonyMic</div><div class="c-sub">手机 → PC 网络麦克风</div><div class="c-pill">本机 IP 192.168.1.8</div></div>
+        <div class="c-card"><div class="c-name">连接配置</div><div class="c-lines"><i></i><i></i><i></i></div></div>
+        <div class="c-btn">进入直播</div>
+        <div class="c-tabbar"><span>连接</span><span>设置</span></div>
+        <div class="minibar">
+          <div class="mlive"><span class="dot"></span><b>LIVE</b></div>
+          <div class="meq"><i style="--hh:80%; animation-delay:.05s"></i><i style="--hh:55%; animation-delay:.2s"></i><i style="--hh:90%; animation-delay:.1s"></i><i style="--hh:45%; animation-delay:.3s"></i><i style="--hh:70%; animation-delay:.15s"></i></div>
+          <span class="msub">点按进入直播</span>
+        </div>
+      </div>
+      <div class="livep">
+        <div class="l-top"><span class="l-chev">‹</span><span class="l-title">直播</span><span class="l-host">192.168.1.20:9000</span><span class="l-mute">静音</span><span class="l-live"><span class="dot"></span><b>LIVE</b></span></div>
+        <div class="l-viz">
+          <div class="l-freq">
+            <i style="--hh:30%; animation-delay:.12s"></i><i style="--hh:62%; animation-delay:.03s"></i><i style="--hh:22%; animation-delay:.21s"></i><i style="--hh:74%; animation-delay:.1s"></i><i style="--hh:46%; animation-delay:.17s"></i><i style="--hh:66%; animation-delay:.06s"></i><i style="--hh:88%; animation-delay:.13s"></i><i style="--hh:35%; animation-delay:.24s"></i><i style="--hh:54%; animation-delay:.08s"></i><i style="--hh:71%; animation-delay:.19s"></i><i style="--hh:27%; animation-delay:.27s"></i><i style="--hh:60%; animation-delay:.02s"></i><i style="--hh:80%; animation-delay:.16s"></i><i style="--hh:44%; animation-delay:.23s"></i><i style="--hh:57%; animation-delay:.11s"></i><i style="--hh:73%; animation-delay:.05s"></i><i style="--hh:38%; animation-delay:.26s"></i><i style="--hh:64%; animation-delay:.14s"></i>
+          </div>
+          <div class="l-cap">实时频谱</div>
+        </div>
+        <div class="l-stat"><div class="l-st"><b>312.5</b><span>KB/s</span></div><div class="l-st"><b>3</b><span>队列</span></div></div>
+        <div class="l-ctl">
+          <div class="l-more">⋯</div>
+          <div class="l-end"><svg viewBox="0 0 24 24"><path d="M9.1 7.6L5 12l4.1 4.4V7.6zm9.8 0L14.8 12l4.1 4.4V7.6z"/></svg></div>
+          <div class="l-muteb"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/></svg></div>
+        </div>
+      </div>
+      <div class="flash"></div>
+    </div>
+    <div class="steps">
+      <span class="st">① mini 条静态</span>
+      <span class="st bad2">② 瞬时硬切 · 页面重建闪烁</span>
+      <span class="st">③ Live 独立页面冷启动</span>
+    </div>
+  </div>
+
+  <div class="demo" id="demoNew">
+    <h3>新方案：geometryTransition 一镜到底<span class="tag new">F1</span></h3>
+    <div class="phone p1" id="phNew">
+      <div class="con">
+        <div class="c-title">HarmonyMic</div>
+        <div class="c-card"><div class="c-name">HarmonyMic</div><div class="c-sub">手机 → PC 网络麦克风</div><div class="c-pill">本机 IP 192.168.1.8</div></div>
+        <div class="c-card"><div class="c-name">连接配置</div><div class="c-lines"><i></i><i></i><i></i></div></div>
+        <div class="c-btn">进入直播</div>
+        <div class="c-tabbar"><span>连接</span><span>设置</span></div>
+      </div>
+      <div class="morph" id="morph">
+        <div class="m-inner-mini">
+          <div class="mlive"><span class="dot"></span><b>LIVE</b></div>
+          <div class="meq"><i style="--hh:80%; animation-delay:.05s"></i><i style="--hh:55%; animation-delay:.2s"></i><i style="--hh:90%; animation-delay:.1s"></i><i style="--hh:45%; animation-delay:.3s"></i><i style="--hh:70%; animation-delay:.15s"></i></div>
+          <span class="msub">点按进入直播</span>
+        </div>
+        <div class="m-inner-big">
+          <div class="l-freq">
+            <i style="--hh:30%; animation-delay:.12s"></i><i style="--hh:62%; animation-delay:.03s"></i><i style="--hh:22%; animation-delay:.21s"></i><i style="--hh:74%; animation-delay:.1s"></i><i style="--hh:46%; animation-delay:.17s"></i><i style="--hh:66%; animation-delay:.06s"></i><i style="--hh:88%; animation-delay:.13s"></i><i style="--hh:35%; animation-delay:.24s"></i><i style="--hh:54%; animation-delay:.08s"></i><i style="--hh:71%; animation-delay:.19s"></i><i style="--hh:27%; animation-delay:.27s"></i><i style="--hh:60%; animation-delay:.02s"></i><i style="--hh:80%; animation-delay:.16s"></i><i style="--hh:44%; animation-delay:.23s"></i><i style="--hh:57%; animation-delay:.11s"></i><i style="--hh:73%; animation-delay:.05s"></i><i style="--hh:38%; animation-delay:.26s"></i><i style="--hh:64%; animation-delay:.14s"></i>
+          </div>
+        </div>
+      </div>
+      <div class="newlive" id="newLive">
+        <div class="l-top"><span class="l-chev">‹</span><span class="l-title">直播</span><span class="l-host">192.168.1.20:9000</span><span class="l-mute">静音</span><span class="l-live"><span class="dot"></span><b>LIVE</b></span></div>
+        <div class="l-stat"><div class="l-st"><b>312.5</b><span>KB/s</span></div><div class="l-st"><b>3</b><span>队列</span></div></div>
+        <div class="l-ctl">
+          <div class="l-more">⋯</div>
+          <div class="l-end"><svg viewBox="0 0 24 24"><path d="M9.1 7.6L5 12l4.1 4.4V7.6zm9.8 0L14.8 12l4.1 4.4V7.6z"/></svg></div>
+          <div class="l-muteb"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="steps">
+      <span class="st">① mini 条静态</span>
+      <span class="st">② 350ms 展开 Curve.Friction</span>
+      <span class="st">③ Live cover 全屏</span>
+    </div>
+  </div>
+</div>
+
+<div class="apiwrap">
+  <h2>实现说明（ArkUI）</h2>
+  <div class="sub2">几何映射对：连接页 mini 条（follow 端）↔ 直播页 VizCard（anchor 端）· 同 geometryTransition id 成对 · 浏览器演示为近似示意，真机以系统渲染为准</div>
+  <div class="apigrid">
+    <div class="api">
+      <h4>follow 端<span class="k">Connect mini 条</span></h4>
+      <p>连接页 mini 条卡片：<code>.geometryTransition('liveCard', { follow: true })</code> + <code>.transition(TransitionEffect.translate({ y: 40 }).combine(TransitionEffect.OPACITY).animation({ curve: curves.springMotion(0.6, 0.85) }))</code> + <code>.id('liveMiniBar')</code>。follow 端跟随几何映射展开。</p>
+    </div>
+    <div class="api">
+      <h4>anchor 端<span class="k">LiveView VizCard</span></h4>
+      <p>直播页 VizCard：<code>.geometryTransition('liveCard')</code> + <code>.transition(TransitionEffect.opacity(0.99))</code> + <code>.id('liveVizCard')</code>。anchor 端转场期间 0.99 透明度占位，避免闪烁。</p>
+    </div>
+    <div class="api">
+      <h4>模态载体<span class="k">bindContentCover</span></h4>
+      <p>Live 以 <code>bindContentCover</code> 弹出，<code>modalTransition</code> 关闭系统默认滑入，展开动画完全交由 geometryTransition 驱动。</p>
+    </div>
+    <div class="api">
+      <h4>动画驱动<span class="k">animateTo</span></h4>
+      <p>点按 mini 条：<code>animateTo({ duration: 350, curve: Curve.Friction })</code> 内置位 <code>liveOpen = true</code>。曲线为轻摩擦减速，与系统磨砂材质卡片动效一致。</p>
+    </div>
+    <div class="api">
+      <h4>行为语义<span class="k">收起 ≠ 断开</span></h4>
+      <p>chevron / 侧滑 = 仅收起 cover，串流继续，mini 条仍在；红色按钮 = stop 串流 + 收起。路由整页销毁重建成为历史。</p>
+    </div>
+  </div>
+  <div class="seg">
+    分段细节：展开时长 350ms（<code>Curve.Friction</code>）；cover 背景磨砂 <code>systemMaterial</code>（API 26 <code>ImmersiveMaterial</code> 就绪后统一为 ULTRA_THICK 材质）；返回收起为同曲线反向；<code>onWillDismiss</code> 保留默认（收起即串流继续，无需二次确认）。浏览器 CSS <code>cubic-bezier(.2,0,.06,1)</code> 仅近似 <code>Curve.Friction</code>，真机节奏以系统插值为准。
+  </div>
+</div>
+
+<script>
+(function () {
+  var phOld = document.getElementById('phOld');
+  var phNew = document.getElementById('phNew');
+  var morph = document.getElementById('morph');
+  var newLive = document.getElementById('newLive');
+  var oldSteps = document.querySelectorAll('#demoOld .st');
+  var newSteps = document.querySelectorAll('#demoNew .st');
+
+  function setSteps(list, idx) {
+    for (var i = 0; i < list.length; i++) { list[i].classList.toggle('on', i === idx); }
+  }
+
+  function loopOld() {
+    phOld.className = 'phone p1';
+    setSteps(oldSteps, 0);
+    setTimeout(function () {
+      phOld.classList.remove('p1');
+      phOld.classList.add('p2');
+      setSteps(oldSteps, 1);
+      setTimeout(function () {
+        phOld.classList.remove('p2');
+        phOld.classList.add('p3');
+        setSteps(oldSteps, 2);
+        setTimeout(loopOld, 2100);
+      }, 420);
+    }, 1400);
+  }
+
+  function loopNew() {
+    morph.classList.add('noanim');
+    newLive.classList.add('noanim');
+    phNew.className = 'phone p1';
+    setSteps(newSteps, 0);
+    setTimeout(function () {
+      morph.classList.remove('noanim');
+      newLive.classList.remove('noanim');
+      phNew.classList.remove('p1');
+      phNew.classList.add('p2');
+      setSteps(newSteps, 1);
+      setTimeout(function () {
+        phNew.classList.remove('p2');
+        phNew.classList.add('p3');
+        setSteps(newSteps, 2);
+        setTimeout(function () {
+          phNew.classList.remove('p3');
+          setSteps(newSteps, -1);
+          setTimeout(loopNew, 320);
+        }, 2100);
+      }, 380);
+    }, 1400);
+  }
+
+  loopOld();
+  loopNew();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+﻿{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#161619"
+    },
+    {
+      "name": "card_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "card_bg_alt",
+      "value": "#E0E0E0"
+    },
+    {
+      "name": "log_bg",
+      "value": "#F2F2F7"
+    },
+    {
+      "name": "text_primary",
+      "value": "#121212"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#993C3C43"
+    },
+    {
+      "name": "text_subtitle",
+      "value": "#663C3C43"
+    },
+    {
+      "name": "text_hint",
+      "value": "#593C3C43"
+    },
+    {
+      "name": "text_warn",
+      "value": "#CC6A00"
+    },
+    {
+      "name": "danger",
+      "value": "#FF6A6A"
+    },
+    {
+      "name": "accent",
+      "value": "#007AFF"
+    },
+    {
+      "name": "btn_selected_text",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "btn_unselected_bg",
+      "value": "#E0E0E0"
+    },
+    {
+      "name": "seg_thumb_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "clip_idle",
+      "value": "#D1D1D6"
+    },
+    {
+      "name": "viz_page_bg",
+      "value": "#0A0A0E"
+    },
+    {
+      "name": "viz_page_pill_bg",
+      "value": "#1C1C22"
+    },
+    {
+      "name": "viz_page_text_sub",
+      "value": "#8A8A95"
+    },
+    {
+      "name": "viz_page_text_main",
+      "value": "#E6E6E6"
+    },
+    {
+      "name": "viz_live_bg",
+      "value": "#2E34C759"
+    },
+    {
+      "name": "page_bg",
+      "value": "#EAEAEA"
+    },
+    {
+      "name": "accent_10",
+      "value": "#1A007AFF"
+    },
+    {
+      "name": "accent_12",
+      "value": "#1F007AFF"
+    },
+    {
+      "name": "live_green",
+      "value": "#34C759"
+    },
+    {
+      "name": "bg_glow",
+      "value": "#E8EEF7"
+    },
+    {
+      "name": "meter_amber",
+      "value": "#FFB800"
+    },
+    {
+      "name": "divider",
+      "value": "#0F000000"
+    },
+    {
+      "name": "mat_card",
+      "value": "#80FFFFFF"
+    },
+    {
+      "name": "mat_card_soft",
+      "value": "#CCFFFFFF"
+    },
+    {
+      "name": "mat_card_rich",
+      "value": "#59FFFFFF"
+    },
+    {
+      "name": "mat_line",
+      "value": "#0F000000"
+    }
+  ]
+}

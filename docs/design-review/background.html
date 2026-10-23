@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直播与后台 · 设计草图 · HarmonyMic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', sans-serif; background: #eef1f4; color: #1c2129; padding-bottom: 80px; }
+a { color: #007AFF; text-decoration: none; }
+.note-bar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.93); backdrop-filter: blur(12px); border-bottom: 1px solid #dde3ea; padding: 13px 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.note-bar .t { font-size: 15px; font-weight: 700; }
+.note-bar .sub { font-size: 12px; color: #68727f; }
+.spacer { flex: 1; }
+.chip { font-size: 11px; padding: 3px 10px; border-radius: 10px; color: #fff; font-weight: 600; white-space: nowrap; }
+.chip.f4 { background: #FF9500; }
+.chip.f9 { background: #A2845E; }
+.chip.keep { background: #8E8E93; }
+.chip.next { background: #C7C7CC; }
+.stage { display: flex; gap: 42px; justify-content: center; align-items: flex-start; padding: 34px 24px; flex-wrap: wrap; }
+.phone { width: 360px; height: 780px; border-radius: 36px; border: 10px solid #10141a; background: #121212; overflow: hidden; position: relative; flex-shrink: 0; box-shadow: 0 30px 80px rgba(15,25,45,.45), inset 0 0 0 2px #2a313c; }
+.ph-label { text-align: center; font-size: 12.5px; color: #5b6472; margin-top: 14px; font-weight: 600; }
+.statusbar { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: #E6E6E6; font-size: 12px; font-weight: 600; }
+.statusbar .sic { display: flex; align-items: center; gap: 5px; }
+.sig { display: flex; align-items: flex-end; gap: 1.5px; }
+.sig i { width: 3px; background: #E6E6E6; border-radius: 1px; display: block; }
+.bat { width: 20px; height: 10px; border: 1.4px solid #E6E6E6; border-radius: 3px; position: relative; opacity: .9; }
+.bat::after { content: ''; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 60%; background: #E6E6E6; border-radius: 1px; }
+.lk-lock { display: flex; justify-content: center; margin-top: 30px; color: rgba(255,255,255,.85); }
+.lk-lock svg { width: 20px; height: 20px; }
+.lk-date { text-align: center; margin-top: 12px; font-size: 14px; color: rgba(255,255,255,.78); font-weight: 500; }
+.lk-clock { text-align: center; margin-top: 4px; font-size: 58px; font-weight: 600; color: #fff; letter-spacing: -1px; line-height: 1.15; }
+.mcard { position: absolute; left: 24px; right: 24px; top: 270px; height: 160px; border-radius: 22px; background: rgba(255,255,255,.10); backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 16px 44px rgba(0,0,0,.38); }
+.micon { position: absolute; left: 18px; top: 18px; width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(160deg, #0A84FF, #5E5CE6); display: flex; align-items: center; justify-content: center; color: #fff; }
+.micon svg { width: 26px; height: 26px; }
+.mtitle { position: absolute; left: 88px; top: 24px; font-size: 16px; font-weight: 600; color: #fff; }
+.msub { position: absolute; left: 88px; top: 50px; font-size: 11.5px; color: rgba(255,255,255,.6); }
+.mliverow { position: absolute; right: 16px; top: 26px; display: flex; align-items: center; gap: 5px; }
+.mdot { width: 7px; height: 7px; border-radius: 4px; background: #FF6A6A; animation: pulse 1.4s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,106,106,.6); } 70% { box-shadow: 0 0 0 7px rgba(255,106,106,0); } 100% { box-shadow: 0 0 0 0 rgba(255,106,106,0); } }
+.mliverow b { font-size: 10px; font-weight: 800; color: #FF6A6A; letter-spacing: 1px; }
+.mdiv { position: absolute; left: 18px; right: 18px; top: 88px; height: 1px; background: rgba(255,255,255,.12); }
+.mctrl { position: absolute; left: 0; right: 0; top: 100px; display: flex; justify-content: center; gap: 70px; }
+.mbtn2 { width: 44px; height: 44px; border-radius: 22px; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.92); }
+.mbtn2 svg { width: 20px; height: 20px; }
+.lk-short { position: absolute; bottom: 114px; left: 30px; width: 46px; height: 46px; border-radius: 23px; background: rgba(255,255,255,.10); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.8); }
+.lk-short.cam { left: auto; right: 30px; }
+.lk-short svg { width: 21px; height: 21px; }
+.homebar { position: absolute; left: 50%; bottom: 24px; width: 130px; height: 5px; margin-left: -65px; border-radius: 2.5px; background: rgba(255,255,255,.32); }
+.vtopbar { display: flex; align-items: center; padding: 0 12px 0 4px; height: 52px; }
+.back { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #E6E6E6; }
+.back svg { width: 24px; height: 24px; }
+.vtitle { font-size: 19px; font-weight: 700; color: #F0F0F2; margin-left: 4px; }
+.scard { background: #1C1C1E; border-radius: 16px; margin: 12px 16px 0; padding: 14px 16px; }
+.step { display: flex; align-items: flex-start; gap: 12px; height: 52px; }
+.step + .step { border-top: 1px solid rgba(255,255,255,.05); }
+.sno { width: 22px; height: 22px; border-radius: 11px; background: rgba(255,255,255,.10); color: #C7C7CC; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 3px; }
+.stcol2 { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.stt { font-size: 13px; font-weight: 600; color: #F0F0F2; }
+.sts { font-size: 10.5px; color: #8A8A95; margin-top: 4px; }
+.schips { margin-left: auto; display: flex; gap: 5px; flex-shrink: 0; }
+.seccap { margin: 20px 20px 0; font-size: 11px; color: #8A8A95; }
+.setcard { background: #1C1C1E; border-radius: 16px; margin: 8px 16px 0; padding: 5px 16px; }
+.setrow { display: flex; align-items: center; height: 48px; gap: 8px; }
+.setrow + .setrow { border-top: 1px solid rgba(255,255,255,.05); }
+.setlabel { font-size: 13.5px; color: #F0F0F2; }
+.setspace { flex: 1; }
+.ssw { width: 44px; height: 26px; border-radius: 13px; background: rgba(255,255,255,.16); position: relative; flex-shrink: 0; }
+.ssw.on { background: #34C759; }
+.ssw i { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 11px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.ssw.on i { left: 20px; }
+.toastcap { margin: 24px 20px 0; font-size: 11px; color: #8A8A95; }
+.toastprev { margin: 10px 20px 0; background: #2C2C2E; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 13px 16px; display: flex; gap: 10px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.toastprev svg { flex-shrink: 0; color: #FF9500; width: 19px; height: 19px; }
+.toastprev span { font-size: 12px; color: #F0F0F2; line-height: 1.55; }
+.hs { position: absolute; width: 22px; height: 22px; border-radius: 11px; background: #FF2D55; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px rgba(255,45,85,.25), 0 2px 6px rgba(0,0,0,.3); z-index: 60; pointer-events: none; }
+.annos { max-width: 400px; display: flex; column-count: 1; flex-direction: column; gap: 14px; }
+.anno { background: #fff; border: 1px solid #e2e7ee; border-radius: 14px; padding: 15px 17px; box-shadow: 0 4px 14px rgba(20,30,50,.05); }
+.anno .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.anno .no { width: 24px; height: 24px; border-radius: 12px; background: #FF2D55; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.anno h4 { font-size: 14px; }
+.anno p { font-size: 12.5px; color: #4a5261; line-height: 1.85; margin-top: 8px; }
+.anno code { background: #eef2f7; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; color: #0a5ab8; }
+.annos .foot { font-size: 12px; color: #7b8494; line-height: 1.9; background: #f4f7fa; border: 1px dashed #d4dae3; border-radius: 12px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+<header class="note-bar">
+  <a href="index.html">← 返回入口</a>
+  <span class="t">直播与后台</span>
+  <span class="sub">锁屏 AVSession 卡片 · 长时任务 · 打断恢复 · 设置</span>
+  <span class="spacer"></span>
+  <span class="chip f9">F9</span>
+  <span class="chip f4">F4</span>
+  <span class="chip keep">保持</span>
+</header>
+<div class="stage">
+  <div>
+    <div class="phone" style="background: linear-gradient(175deg, #16202e 0%, #0A0A0E 62%);">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="lk-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5.5" y="10.5" width="13" height="9" rx="2.2"/><path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7"/></svg></div>
+      <div class="lk-date">10月14日 星期三</div>
+      <div class="lk-clock">12:30</div>
+      <div class="mcard">
+        <div class="micon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-2a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/></svg></div>
+        <div class="mtitle">HarmonyMic</div>
+        <div class="msub">直播中 → 192.168.1.20:9000</div>
+        <div class="mliverow"><span class="mdot"></span><b>LIVE</b></div>
+        <div class="mdiv"></div>
+        <div class="mctrl">
+          <div class="mbtn2"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.6" height="14" rx="1.6"/><rect x="13.4" y="5" width="3.6" height="14" rx="1.6"/></svg></div>
+          <div class="mbtn2"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.2"/></svg></div>
+        </div>
+      </div>
+      <div class="lk-short"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.6 3h6.8l-1.2 5.6H9.8L8.6 3z"/><rect x="9.7" y="8.6" width="4.6" height="7.2" rx="1.5"/><path d="M12 15.8v3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+      <div class="lk-short cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="7.2" width="17.6" height="12.6" rx="3"/><path d="M8.6 7.2l1.3-2.5h4.2l1.3 2.5"/><circle cx="12" cy="13.5" r="3.4"/></svg></div>
+      <div class="homebar"></div>
+      <div class="hs" style="left: 170px; top: 302px;">1</div>
+      <div class="hs" style="left: 170px; top: 388px;">2</div>
+    </div>
+    <div class="ph-label">锁屏 · AVSession 媒体卡片</div>
+  </div>
+  <div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>12:30</span>
+        <span class="sic">
+          <span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 9.5a15 15 0 0 1 19 0"/><path d="M5.5 13a10 10 0 0 1 13 0"/><path d="M8.6 16.4a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19.6" r="1.4" fill="currentColor" stroke="none"/></svg>
+          <span class="bat"></span>
+        </span>
+      </div>
+      <div class="vtopbar">
+        <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <span class="vtitle">直播与后台</span>
+      </div>
+      <div class="scard">
+        <div class="step">
+          <div class="sno">1</div>
+          <div class="stcol2"><div class="stt">前台串流</div><div class="sts">AudioCapturer → 管线 → TCP 队列</div></div>
+        </div>
+        <div class="step">
+          <div class="sno">2</div>
+          <div class="stcol2"><div class="stt">退后台 · 长时任务</div><div class="sts">continuousTask audioRecording 保活，采集不断流</div></div>
+          <div class="schips"><span class="chip keep">保持</span></div>
+        </div>
+        <div class="step">
+          <div class="sno">3</div>
+          <div class="stcol2"><div class="stt">锁屏 · AVSession 卡片</div><div class="sts">setAVMetadata 元数据 + 控制命令</div></div>
+          <div class="schips"><span class="chip f9">F9</span></div>
+        </div>
+        <div class="step">
+          <div class="sno">4</div>
+          <div class="stcol2"><div class="stt">来电打断 · 自动闭麦</div><div class="sts">audioInterrupt + setWillMuteWhenInterrupted</div></div>
+          <div class="schips"><span class="chip keep">保持</span></div>
+        </div>
+        <div class="step">
+          <div class="sno">5</div>
+          <div class="stcol2"><div class="stt">通话结束 · 自动恢复</div><div class="sts">interrupt END → 重启采集 · 失败 toast</div></div>
+          <div class="schips"><span class="chip f9">F9</span></div>
+        </div>
+      </div>
+      <div class="seccap">设置 · 直播与后台</div>
+      <div class="setcard">
+        <div class="setrow">
+          <span class="setlabel">屏幕常亮</span>
+          <span class="setspace"></span>
+          <span class="chip f9">F9</span>
+          <div class="ssw"><i></i></div>
+        </div>
+        <div class="setrow">
+          <span class="setlabel">来电自动恢复</span>
+          <span class="setspace"></span>
+          <span class="chip f9">F9</span>
+          <div class="ssw on"><i></i></div>
+        </div>
+        <div class="setrow">
+          <span class="setlabel">弱网自动降级</span>
+          <span class="setspace"></span>
+          <span class="chip f4">F4</span>
+          <div class="ssw on"><i></i></div>
+        </div>
+      </div>
+      <div class="toastcap">Toast 兜底（自动恢复失败时）</div>
+      <div class="toastprev">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2L21.5 20H2.5L12 3.2z"/><path d="M12 9.5v4.5"/><circle cx="12" cy="16.8" r=".4" fill="currentColor"/></svg>
+        <span>自动恢复失败 · 请回 App 手动重启采集</span>
+      </div>
+      <div class="hs" style="left: 26px; top: 170px;">3</div>
+      <div class="hs" style="left: 26px; top: 274px;">4</div>
+      <div class="hs" style="left: 26px; top: 326px;">5</div>
+      <div class="hs" style="left: 26px; top: 440px;">6</div>
+    </div>
+    <div class="ph-label">时序 · 设置开关 · Toast 兜底</div>
+  </div>
+  <div class="annos">
+    <div class="anno">
+      <div class="top"><span class="no">1</span><h4>锁屏媒体卡片</h4><span class="chip f9">F9</span></div>
+      <p>AvSessionService 挂在 StreamService：<code>createAVSession('audio')</code> 与 <code>session.stop() / release()</code> 成对（svc.stop 时释放）；<code>setAVMetadata</code> 歌手位 = 端点地址、时长位 = 已连时长（<code>duration</code> 字段随 <code>syncElapsed</code> 每秒推进持续更新，锁屏卡片 UI 由系统媒体控制器自渲染，mock 不绘制时长位），随连接状态更新。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">2</span><h4>控制命令映射</h4><span class="chip f9">F9</span></div>
+      <p><code>on('play') / on('pause')</code> → 切换 <code>vizMuted</code>（串流不断，与前台静音按钮共用同一 AppStorage key，两处状态实时同步）；<code>on('stop')</code> → <code>svc.stop()</code> 断开并停止。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">3</span><h4>长时任务</h4><span class="chip keep">保持</span></div>
+      <p>continuousTask <code>audioRecording</code> 已有：<code>startBgTask / stopBgTask</code> 成对 + module.json5 已声明，退后台采集不断流，本期不动。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">4</span><h4>来电打断</h4><span class="chip keep">保持</span></div>
+      <p><code>capturer.on('audioInterrupt')</code> 已有；<code>AUDIO_SESSION_CONFLICT_CODE 6800301</code> → handleMicLost + micOccupied 提示；<code>setWillMuteWhenInterrupted(true)</code> 自动闭麦。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">5</span><h4>自动恢复</h4><span class="chip f9">F9</span></div>
+      <p>通话结束（interrupt 结束事件）且 <code>cfgAutoRecover = true</code> → 自动重启采集并恢复串流；恢复失败 → toast 兜底「自动恢复失败 · 请回 App 手动重启采集」，30s 内不重复提示。</p>
+    </div>
+    <div class="anno">
+      <div class="top"><span class="no">6</span><h4>设置三开关</h4><span class="chip f9">F9</span><span class="chip f4">F4</span></div>
+      <p>屏幕常亮 <code>cfgKeepScreenOn</code>（默认关；<code>setWindowKeepScreenOn</code> 从常开改为跟随开关）；来电自动恢复 <code>cfgAutoRecover</code>（默认开）；弱网自动降级 <code>cfgAutoDowngrade</code>（默认开，评分持续 weak 时 48k→16k，详见 F4）。</p>
+    </div>
+    <div class="foot">落地要点：AvSessionService.ets 新建于 entry/services，仅 StreamService 依赖；锁屏命令经 AppStorage 与 StreamService 公共方法生效，不直连 TCP；锁屏卡片与前台按钮状态互为镜像，禁止出现双状态源。</div>
+  </div>
+</div>
+</body>
+</html>

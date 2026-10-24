@@ -48,7 +48,7 @@ export struct LiveView {
   aboutToAppear(): void {
     MicLogger.info('LiveView appear');
     UiEnvService.getInstance().setSystemBarLightContent(true);
-    this.showBarThenQueryTopPad();
+    this.queryTopPad();
     this.orientationQuery = this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)');
     this.isLandscape = this.orientationQuery.matches;
     this.orientationQuery.on('change', (result: mediaquery.MediaQueryResult) => {
@@ -56,13 +56,7 @@ export struct LiveView {
     });
   }
 
-  // 说明: 显示系统状态栏（时间可见）后再取避让高度，确保顶栏内容不覆盖状态栏文字区域。
-  private async showBarThenQueryTopPad(): Promise<void> {
-    await UiEnvService.getInstance().showSystemBar();
-    this.queryTopPad();
-  }
-
-  // 说明: 状态栏已显示，以 TYPE_SYSTEM/TYPE_CUTOUT 避让高度补偿内边距；
+  // 说明: 状态栏保持全局沉浸隐藏（不显示时间），顶部以 TYPE_SYSTEM/TYPE_CUTOUT 挖孔避让高度补偿内边距；
   // setWindowSystemBarEnable 与避让区更新存在时序差，注册 avoidAreaChange 监听保证 topPad 最终一致。
   private queryTopPad(): void {
     const ui = this.getUIContext();
@@ -111,9 +105,8 @@ export struct LiveView {
       this.orientationQuery.off('change');
       this.orientationQuery = null;
     }
-    // 说明: 恢复沉浸（hideSystemBar）由宿主 bindContentCover onDisappear 执行——
-    // aboutToDisappear 在退出转场起点触发，窗口级 setWindowSystemBarEnable 与转场并发
-    // 会令导航条区域沉浸失效+底部布局抖动（WMS 避让区重算与转场动画互踩中间帧暴露）。
+    // 说明: 无窗口级操作——状态栏在直播全程保持全局沉浸隐藏，
+    // 宿主 bindContentCover onDisappear 仅恢复字色（纯 setWindowSystemBarProperties，无布局影响）。
   }
 
   private hostText(): string {

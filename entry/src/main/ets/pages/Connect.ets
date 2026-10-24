@@ -901,12 +901,11 @@ struct Connect {
         action.dismiss();
         this.restoreSystemBar();
       },
-      // 说明: 窗口级系统栏恢复必须在退出转场结束后执行（onDisappear=动画结束回调）——
-      // 若在转场起点（aboutToDisappear/onWillDismiss）调 setWindowSystemBarEnable，
-      // WMS 避让区重算与转场动画并发，导航条区域沉浸会短暂失效（露窗口底色）+底部布局抖动。
+      // 说明: onDisappear 仅恢复字色（restoreSystemBar 纯 setWindowSystemBarProperties，无布局影响，可覆盖旁路关闭场景）。
+      // 状态栏在直播全程保持隐藏，无窗口级 enable 开关——曾在转场尾执行 hideSystemBar 令 WMS 避让区重算
+      // 与退出动画互踩，主界面底部布局跳动（用户实证），已随 Live 沉浸化一并根除。
       onDisappear: () => {
         this.restoreSystemBar();
-        UiEnvService.getInstance().hideSystemBar();
       }
     })
   }

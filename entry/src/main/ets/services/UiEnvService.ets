@@ -80,18 +80,4 @@ export class UiEnvService {
       MicLogger.warn(`UiEnvService 状态栏隐藏失败: ${err.message}`);
     }
   }
-
-  // 说明: 直播页恢复状态栏显示（时间可见），配合浅色字避免内容遮挡；退出时由 hideSystemBar 还原沉浸。
-  async showSystemBar(): Promise<void> {
-    const win = this.win;
-    if (win === null) {
-      return;
-    }
-    try {
-      await win.setWindowSystemBarEnable(['status', 'navigation']);
-    } catch (error) {
-      const err = error as BusinessError;
-      MicLogger.warn(`UiEnvService 状态栏显示失败: ${err.message}`);
-    }
-  }
 }
